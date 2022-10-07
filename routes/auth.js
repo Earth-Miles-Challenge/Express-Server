@@ -3,7 +3,13 @@ const express = require('express');
 const router = express.Router();
 const { getClientToken } = require('../utils/strava.js');
 
-/* GET home page. */
+/**
+ * Strava authentication.
+ *
+ * This receives a Strava authorization code and uses that to
+ * obtain a token from Strava. If successful, the Strava response
+ * is stored in the session and the user is redirected.
+ */
 router.get('/strava', async (req, res, next) => {
 	const redirect = req.query.state || 'http://localhost:3000'
 
@@ -13,21 +19,25 @@ router.get('/strava', async (req, res, next) => {
 
 	const response = await getClientToken(req.query.code);
 
+	// Use successful response to add athlete details to the session
 	if (response) {
-		res.json(response);
+		req.session.strava = response;
+		req.session.profile = {
+			...req.session.profile,
+			strava_id: response.athlete.id, 
+			first_name: response.athlete.firstname,
+			last_name: response.athlete.lastname,
+			picture: response.athlete.profile,
+			city: response.athlete.city,
+			state: response.athlete.state,
+			country: response.athlete.country
+		}
+		res.redirect(redirect);
 	}
 
 	const err = new Error();
 	err.status = 500;
 	next(err);
-	// res.redirect(redirect + '?success');
-
-	// .then((response) => {
-	// 	res.json(response.athlete);
-	// })
-	// .catch((err) => {
-	// 	next(err);
-	// });
 });
 
 router.post('/strava', function(req, res, next) {
