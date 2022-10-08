@@ -14,6 +14,12 @@ const authRouter = require('./routes/auth');
 const app = express();
 const keys = require('../private/keys.json');
 
+// cors
+app.use(cors({
+	origin: 'http://localhost:3000'
+}));
+
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -24,17 +30,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// cors
-app.use(cors({
-	origin: 'http://localhost:3000'
-}));
-
 // sessions
 app.use(session({
 	secret: keys.sessionSecret,
 	cookie: { secure: false, maxAge: null },
 	store
 }));
+
+app.all('*', (req, res, next) => {
+	console.log(req.session);
+});
 
 app.use((req, res, next) => {
 	res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
