@@ -69,13 +69,11 @@ router.get('/', function(req, res, next) {
  * Get current user profile.
  */
 router.get('/profile', (req, res, next) => {
-	res.json({
-		first_name: 'Eric'
-	});
 	if (req.session.profile) {
 		res.json(req.session.profile);
+	} else {
+		res.json({});
 	}
-	res.json({});
 });
 
 

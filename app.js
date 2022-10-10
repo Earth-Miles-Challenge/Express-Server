@@ -14,11 +14,6 @@ const authRouter = require('./routes/auth');
 const app = express();
 const keys = require('../private/keys.json');
 
-// cors
-app.use(cors({
-	origin: 'http://localhost:3000'
-}));
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -30,21 +25,35 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // sessions
+app.set('trust proxy', 1);
+
 app.use(session({
 	secret: keys.sessionSecret,
-	cookie: { secure: false, maxAge: null },
+	cookie: {
+		sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+		secure: process.env.NODE_ENV === 'production',
+		maxAge: null
+	},
 	store
+}));
+
+
+// cors
+app.use(cors({
+	origin: 'http://localhost:3000',
+	credentials: true
 }));
 
 app.all('*', (req, res, next) => {
 	console.log('Session ID: ' + req.session.id);
-});
-
-app.use((req, res, next) => {
-	res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
-	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 	next();
 });
+
+// app.use((req, res, next) => {
+// 	res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
+// 	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+// 	next();
+// });
 
 app.use('/', indexRouter);
 app.use('/user', userRouter);
