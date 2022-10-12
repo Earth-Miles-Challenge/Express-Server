@@ -24,7 +24,7 @@ router.get('/strava', async (req, res, next) => {
 		req.session.strava = response;
 		req.session.profile = {
 			...req.session.profile,
-			strava_id: response.athlete.id, 
+			strava_id: response.athlete.id,
 			first_name: response.athlete.firstname,
 			last_name: response.athlete.lastname,
 			picture: response.athlete.profile,
@@ -54,7 +54,7 @@ router.post('/strava', function(req, res, next) {
 		grant_type: 'authorization_code'
 	})
 	.then((response) => {
-		res.json(response.athlete);
+		res.json(response);
 	})
 	.catch((err) => {
 		next(err);

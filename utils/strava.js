@@ -18,7 +18,23 @@ const getClientToken = async (code) => {
 	}
 }
 
+const getAthleteActivities = () => {
+	response = axios.get(`https://www.strava.com/api/v3/oauth/token`, {
+		client_id: _clientId,
+		client_secret: _clientSecret,
+		code: req.body.code,
+		grant_type: 'authorization_code'
+	})
+	.then((response) => {
+		res.json(response);
+	})
+	.catch((err) => {
+		next(err);
+	});
+}
+
 module.exports = {
 	clientId: keys.stravaClientId,
-	getClientToken
+	getClientToken,
+	getAthleteActivities
 }

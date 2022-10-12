@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { getAthleteActivities } = require('../utils/strava');
 
 const ATHLETES = [
 	{
@@ -74,6 +75,22 @@ router.get('/profile', (req, res, next) => {
 	} else {
 		res.json({});
 	}
+});
+
+/**
+ * Get current user Strava activities.
+ *
+ * In future, this should be rewritten to /:id/activities.
+ */
+router.get('/activities', (req, res, next) => {
+	res.json([]);
+	// console.log(req.session);
+	// if (req.session.strava) {
+	// 	const activities = getAthleteActivities(req.session.strava.access_token)
+	// 	res.json(activities);
+	// } else {
+	// 	res.json([]);
+	// }
 });
 
 
