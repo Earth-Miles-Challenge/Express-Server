@@ -7,6 +7,8 @@ const session = require('express-session');
 const store = new session.MemoryStore();
 const cors = require('cors');
 
+require('dotenv').config({path: './.env'});
+
 const indexRouter = require('./routes/index');
 const userRouter = require('./routes/user');
 const authRouter = require('./routes/auth');

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getAthleteActivities } = require('../utils/strava');
+const { insertUser } = require('../db/user');
 
 const ATHLETES = [
 	{
@@ -75,6 +76,21 @@ router.get('/profile', (req, res, next) => {
 	} else {
 		res.json({});
 	}
+});
+
+router.post('/', function(req, res, next) {
+	insertUser({
+		first_name: 'Eric',
+		last_name: 'Daams',
+		email: 'eric@ex.dev',
+		profile_photo: ''
+	}).then(user => {
+		res.send(`User ${user.id} created`);
+	})
+	.catch(error => {
+		console.log(error);
+		res.status(401).send('Unable to insert user');
+	});
 });
 
 /**

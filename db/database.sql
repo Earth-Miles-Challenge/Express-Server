@@ -5,13 +5,12 @@ CREATE TYPE IF NOT EXISTS "activity_types" AS ENUM (
 );
 
 CREATE TABLE IF NOT EXISTS "users" (
-  "id" int,
+  "id" int serial primary key,
   "email" varchar(128),
   "first_name" varchar(64),
   "last_name" varchar(64),
   "profile_photo" varchar(256),
-  "created_at" timestamptz,
-  PRIMARY KEY ("id")
+  "created_at" timestamptz
 );
 
 CREATE TABLE IF NOT EXISTS "strava_connection_details" (
