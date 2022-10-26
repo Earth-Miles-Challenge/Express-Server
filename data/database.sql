@@ -1,20 +1,20 @@
-CREATE TYPE "activity_types" AS ENUM (
+CREATE TYPE IF NOT EXISTS "activity_types" AS ENUM (
   'run',
   'ride',
   'walk'
 );
 
-CREATE TABLE "users" (
+CREATE TABLE IF NOT EXISTS "users" (
   "id" int,
   "email" varchar(128),
   "first_name" varchar(64),
   "last_name" varchar(64),
   "profile_photo" varchar(256),
-  "created_at" datetime,
+  "created_at" timestamptz,
   PRIMARY KEY ("id")
 );
 
-CREATE TABLE "strava_connection_details" (
+CREATE TABLE IF NOT EXISTS "strava_connection_details" (
   "user_id" int,
   "strava_id" varchar,
   "expires_at" int,
@@ -24,14 +24,14 @@ CREATE TABLE "strava_connection_details" (
   PRIMARY KEY ("user_id")
 );
 
-CREATE TABLE "activities" (
+CREATE TABLE IF NOT EXISTS "activities" (
   "id" int,
   "user_id" int,
   "strava_activity_id" text,
   "activity_type" activity_types,
   "description" varchar,
-  "start_date" datetime,
-  "start_date_local" datetime,
+  "start_date" timestamptz,
+  "start_date_local" timestamptz,
   "timezone" varchar,
   "utc_offset" integer,
   "distance" float,
