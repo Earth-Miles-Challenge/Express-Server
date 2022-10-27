@@ -1,7 +1,7 @@
 const axios = require('axios');
 const express = require('express');
 const router = express.Router();
-const { getClientToken } = require('../utils/strava.js');
+const { getClientToken } = require('../services/strava.service');
 
 /**
  * Strava authentication.

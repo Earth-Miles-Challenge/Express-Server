@@ -1,27 +1,25 @@
 const axios = require('axios');
-const fs = require('fs');
-const keys = require('../../private/keys.json');
 
 const getClientToken = async (code) => {
 	try {
 		const response = await axios.post(`https://www.strava.com/api/v3/oauth/token`, {
-			client_id: keys.stravaClientId,
-			client_secret: keys.stravaClientSecret,
+			client_id: process.env.STRAVA_CLIENT_ID,
+			client_secret: process.env.STRAVA_CLIENT_SECRET,
 			code: code,
 			grant_type: 'authorization_code'
 		});
 		console.log(response);
 		return response.data;
 	} catch (err) {
-		console.log(err);
+		console.log(`There was an error while getting a client token from Strava`, err.message);
 		return false;
 	}
 }
 
-const getAthleteActivities = () => {
+const getAthleteActivities = (req) => {
 	response = axios.get(`https://www.strava.com/api/v3/oauth/token`, {
-		client_id: _clientId,
-		client_secret: _clientSecret,
+		client_id: process.env.STRAVA_CLIENT_ID,
+		client_secret: process.env.STRAVA_CLIENT_SECRET,
 		code: req.body.code,
 		grant_type: 'authorization_code'
 	})
@@ -34,7 +32,6 @@ const getAthleteActivities = () => {
 }
 
 module.exports = {
-	clientId: keys.stravaClientId,
 	getClientToken,
 	getAthleteActivities
 }

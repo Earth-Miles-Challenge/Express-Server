@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAthleteActivities } = require('../utils/strava');
+const { getAthleteActivities } = require('../services/strava.service');
 const { insertUser } = require('../db/user');
 
 const ATHLETES = [
@@ -50,6 +50,50 @@ const ATHLETES = [
 		}
 	}
 ]
+
+async function get(req, res, next) {
+	try {
+
+	} catch (err) {
+		console.log(`Error when getting user`, err.message);
+		next(err);
+	}
+}
+
+async function getOne(req, res, next) {
+	if (req.session.profile) {
+		res.json(req.session.profile);
+	} else {
+		res.json({});
+	}
+}
+
+async function update(req, res, next) {
+	try {
+
+	} catch (err) {
+		console.log(`Error when updating user`, err.message);
+		next(err);
+	}
+}
+
+async function create(req, res, next) {
+	try {
+
+	} catch (err) {
+		console.log(`Error when creating user`, err.message);
+		next(err);
+	}
+}
+
+async function remove(req, res, next) {
+	try {
+
+	} catch (err) {
+		console.log(`Error when deleting user`, err.message);
+		next(err);
+	}
+}
 
 /**
  * Get athletes, optionally filtered by search.
@@ -154,5 +198,10 @@ router.get('/activities', (req, res, next) => {
 	// }
 });
 
-
-module.exports = router;
+module.exports = {
+	get,
+	getOne,
+	create,
+	update,
+	remove
+};

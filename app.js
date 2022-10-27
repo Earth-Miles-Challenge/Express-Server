@@ -1,43 +1,25 @@
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const session = require('express-session');
-const store = new session.MemoryStore();
-const cors = require('cors');
-
 require('dotenv').config({path: './.env'});
 
-const indexRouter = require('./routes/index');
-const userRouter = require('./routes/user');
-const authRouter = require('./routes/auth');
+const createError = require('http-errors');
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const cors = require('cors');
+const session = require('express-session');
+const sessionConfig = require('./src/configs/session.config');
+
+const usersRouter = require('./src/routes/users.route');
+const authRouter = require('./src/routes/auth.route');
 
 const app = express();
-const keys = require('../private/keys.json');
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-// sessions
 app.set('trust proxy', 1);
 
-app.use(session({
-	secret: keys.sessionSecret,
-	cookie: {
-		sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-		secure: process.env.NODE_ENV === 'production',
-		maxAge: null
-	},
-	store
-}));
+app.use(session(sessionConfig));
 
 
 // cors
@@ -51,8 +33,7 @@ app.all('*', (req, res, next) => {
 	next();
 });
 
-app.use('/', indexRouter);
-app.use('/user', userRouter);
+app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 
 // catch 404 and forward to error handler
