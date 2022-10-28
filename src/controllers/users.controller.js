@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getAthleteActivities } = require('../services/strava.service');
-const { insertUser } = require('../db/user');
+const { insertUser } = require('../_db/user');
 
 const ATHLETES = [
 	{
@@ -53,7 +53,7 @@ const ATHLETES = [
 
 async function get(req, res, next) {
 	try {
-
+		res.json({});
 	} catch (err) {
 		console.log(`Error when getting user`, err.message);
 		next(err);

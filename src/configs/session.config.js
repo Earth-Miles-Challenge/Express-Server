@@ -1,11 +1,12 @@
 const session = require('express-session');
 const store = new session.MemoryStore();
+const env = process.env.NODE_ENV.toUpperCase();
 
 module.exports = {
-	secret: process.env.SESSION_SECRET,
+	secret: process.env[`SESSION_SECRET_${env}`],
 	cookie: {
-		sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-		secure: process.env.NODE_ENV === 'production',
+		sameSite: env === 'production' ? 'none' : 'lax',
+		secure: env === 'production',
 		maxAge: null
 	},
 	resave: false,

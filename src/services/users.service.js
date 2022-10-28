@@ -1,4 +1,4 @@
-const db = require('./index');
+const db = require('./database.service');
 
 const insertUser = async (data) => {
 	const {
