@@ -16,16 +16,6 @@ const pool = new Pool({
 	port: dbPort
 });
 
-console.log({
-	user: dbUser,
-	host: dbHost,
-	database: dbDatabase,
-	password: dbPassword,
-	port: dbPort
-});
-
-
-
 module.exports = {
 	query: (text, params, callback) => {
 		return pool.query(text, params, callback)
