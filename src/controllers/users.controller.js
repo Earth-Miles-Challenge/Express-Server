@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getAthleteActivities } = require('../services/strava.service');
-const { insertUser } = require('../_db/user');
+const { insertUser } = require('../services/users.service');
 
 const ATHLETES = [
 	{
@@ -53,18 +53,19 @@ const ATHLETES = [
 
 async function get(req, res, next) {
 	try {
-		res.json({});
+		res.json([{}]);
 	} catch (err) {
-		console.log(`Error when getting user`, err.message);
+		console.log(`Error when getting users`, err.message);
 		next(err);
 	}
 }
 
 async function getOne(req, res, next) {
-	if (req.session.profile) {
-		res.json(req.session.profile);
-	} else {
+	try {
+		// res.json(req.session.profile);
 		res.json({});
+	} catch (err) {
+		console.log(`Error when getting single user`, err.message);
 	}
 }
 
@@ -79,7 +80,8 @@ async function update(req, res, next) {
 
 async function create(req, res, next) {
 	try {
-
+		const user = await insertUser(req.body);
+		res.status(201).json(user);
 	} catch (err) {
 		console.log(`Error when creating user`, err.message);
 		next(err);

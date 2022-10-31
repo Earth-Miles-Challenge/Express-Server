@@ -5,7 +5,7 @@ CREATE TYPE IF NOT EXISTS "activity_types" AS ENUM (
 );
 
 CREATE TABLE IF NOT EXISTS "users" (
-  "id" int serial primary key,
+  "id" serial primary key,
   "email" varchar(128),
   "first_name" varchar(64),
   "last_name" varchar(64),

@@ -24,7 +24,9 @@ app.use(cors(corsConfig));
 
 /** @todo remove this eventually, or do something similar in logger? */
 app.all('*', (req, res, next) => {
-	console.log('Session ID: ' + req.session.id);
+	if (process.NODE_ENV === 'development') {
+		console.log('Session ID: ' + req.session.id);
+	}
 	next();
 });
 

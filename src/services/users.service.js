@@ -12,11 +12,11 @@ const insertUser = async (data) => {
 	const values = [first_name, last_name, email, profile_photo]
 
 	try {
-		const res = await db.query(sql, values);
-		console.log(res);
-		return res.rows[0];
+		const result = await db.query(sql, values);
+		return result.rows[0];
 	} catch (err) {
 		console.log(err.stack);
+		return
 	}
 }
 

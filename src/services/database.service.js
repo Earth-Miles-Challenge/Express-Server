@@ -4,7 +4,7 @@ const {
 	[`PGUSER_${env}`]: dbUser,
 	[`PGHOST_${env}`]: dbHost,
 	[`PGPORT_${env}`]: dbPort,
-	[`PGDATBASE_${env}`]: dbDatabase,
+	[`PGDATABASE_${env}`]: dbDatabase,
 	[`PGPASSWORD_${env}`]: dbPassword
 } = process.env;
 
@@ -15,6 +15,16 @@ const pool = new Pool({
 	password: dbPassword,
 	port: dbPort
 });
+
+console.log({
+	user: dbUser,
+	host: dbHost,
+	database: dbDatabase,
+	password: dbPassword,
+	port: dbPort
+});
+
+
 
 module.exports = {
 	query: (text, params, callback) => {
