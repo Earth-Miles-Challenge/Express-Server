@@ -1,7 +1,57 @@
 const express = require('express');
 const router = express.Router();
-const { getAthleteActivities } = require('../services/strava.service');
-const { insertUser } = require('../services/users.service');
+const usersServices = require('../services/users.service');
+
+async function get(req, res, next) {
+	try {
+		const users = await usersServices.get(req.query);
+		res.json(users);
+	} catch (err) {
+		console.log(`Error when getting users`, err.message);
+		next(err);
+	}
+}
+
+async function getOne(req, res, next) {
+	try {
+		const user = await usersServices.getOne(req.params.id);
+		res.json(user);
+	} catch (err) {
+		console.log(`Error when getting single user`, err.message);
+	}
+}
+
+async function update(req, res, next) {
+	try {
+
+	} catch (err) {
+		console.log(`Error when updating user`, err.message);
+		next(err);
+	}
+}
+
+async function create(req, res, next) {
+	try {
+		const user = await usersServices.create(req.body);
+		res.status(201).json(user);
+	} catch (err) {
+		console.log(`Error when creating user`, err.message);
+		next(err);
+	}
+}
+
+async function remove(req, res, next) {
+	try {
+
+	} catch (err) {
+		console.log(`Error when deleting user`, err.message);
+		next(err);
+	}
+}
+
+
+
+
 
 const ATHLETES = [
 	{
@@ -51,52 +101,6 @@ const ATHLETES = [
 	}
 ]
 
-async function get(req, res, next) {
-	try {
-		res.json([{}]);
-	} catch (err) {
-		console.log(`Error when getting users`, err.message);
-		next(err);
-	}
-}
-
-async function getOne(req, res, next) {
-	try {
-		// res.json(req.session.profile);
-		res.json({});
-	} catch (err) {
-		console.log(`Error when getting single user`, err.message);
-	}
-}
-
-async function update(req, res, next) {
-	try {
-
-	} catch (err) {
-		console.log(`Error when updating user`, err.message);
-		next(err);
-	}
-}
-
-async function create(req, res, next) {
-	try {
-		const user = await insertUser(req.body);
-		res.status(201).json(user);
-	} catch (err) {
-		console.log(`Error when creating user`, err.message);
-		next(err);
-	}
-}
-
-async function remove(req, res, next) {
-	try {
-
-	} catch (err) {
-		console.log(`Error when deleting user`, err.message);
-		next(err);
-	}
-}
-
 /**
  * Get athletes, optionally filtered by search.
  */
@@ -125,7 +129,7 @@ router.get('/profile', (req, res, next) => {
 });
 
 router.post('/', function(req, res, next) {
-	insertUser({
+	usersServices.create({
 		first_name: 'Eric',
 		last_name: 'Daams',
 		email: 'eric@ex.dev',
