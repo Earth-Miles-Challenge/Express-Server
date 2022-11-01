@@ -1,6 +1,6 @@
 const db = require('./database.service');
 
-const insertUser = async (data) => {
+const create = async (data) => {
 	const {
 		first_name,
 		last_name,
@@ -13,7 +13,7 @@ const insertUser = async (data) => {
 
 	try {
 		const result = await db.query(sql, values);
-		return result.rows[0];
+		return result.rows;
 	} catch (err) {
 		console.log(err.stack);
 		return
@@ -21,5 +21,5 @@ const insertUser = async (data) => {
 }
 
 module.exports = {
-	insertUser
+	create
 }

@@ -4,7 +4,7 @@ const app = require('../../app');
 describe('Users service', () => {
 	describe('insertUser', () => {
 		it('creates a new user with all values', async () => {
-			const res = usersService.insertUser({
+			const res = usersService.create({
 				first_name: 'Test',
 				last_name: 'User',
 				email: 'test.user@ex.dev',
@@ -16,7 +16,7 @@ describe('Users service', () => {
 		});
 
 		it('creates a new user without an email address', async () => {
-			const res = usersService.insertUser({
+			const res = usersService.create({
 				first_name: 'Test',
 				last_name: 'User',
 				email: '',
