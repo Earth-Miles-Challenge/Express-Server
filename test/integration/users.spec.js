@@ -67,5 +67,14 @@ describe('/users route', () => {
 			expect(res.body[0]).toHaveProperty('id');
 			expect(res.body[0].id).toEqual(expect.any(Number));
 		});
+
+		it('Does not insert user without any data', async () => {
+			const res = await request(app)
+				.post('/users')
+				.send();
+
+			expect(res.statusCode).toBe(201);
+			expect(res.body[0]).not.toHaveProperty('id');
+		});
 	});
 });

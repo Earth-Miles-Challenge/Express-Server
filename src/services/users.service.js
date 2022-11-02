@@ -33,7 +33,7 @@ const create = async (data) => {
 		first_name,
 		last_name,
 		email,
-		profile_photo
+		profile_photo = ''
 	} = data;
 
 	const sql = 'INSERT INTO public.users(first_name, last_name, email, profile_photo) VALUES($1, $2, $3, $4) RETURNING id';
@@ -41,7 +41,7 @@ const create = async (data) => {
 
 	try {
 		const result = await db.query(sql, values);
-		return result.rows;
+		return result.rows[0];
 	} catch (err) {
 		console.log(err.stack);
 	}

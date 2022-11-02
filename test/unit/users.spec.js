@@ -4,7 +4,7 @@ const app = require('../../app');
 describe('Users service', () => {
 	describe('insertUser', () => {
 		it('creates a new user with all values', async () => {
-			const res = usersService.create({
+			const res = await usersService.create({
 				first_name: 'Test',
 				last_name: 'User',
 				email: 'test.user@ex.dev',
@@ -16,11 +16,9 @@ describe('Users service', () => {
 		});
 
 		it('creates a new user without an email address', async () => {
-			const res = usersService.create({
+			const res = await usersService.create({
 				first_name: 'Test',
-				last_name: 'User',
-				email: '',
-				profile_photo: ''
+				last_name: 'User'
 			});
 
 			expect(res).toHaveProperty('id');
