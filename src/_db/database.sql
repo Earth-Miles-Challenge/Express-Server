@@ -10,7 +10,7 @@ CREATE TYPE "activity_platform" AS ENUM (
 
 CREATE TABLE IF NOT EXISTS "users" (
   "id" serial primary key,
-  "email" varchar(128) unique,
+  "email" varchar(128) unique default null,
   "first_name" varchar(64),
   "last_name" varchar(64),
   "profile_photo" varchar(256),

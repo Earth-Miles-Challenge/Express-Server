@@ -35,6 +35,13 @@ async function create(req, res, next) {
 		const user = await usersServices.create(req.body);
 		res.status(201).json(user);
 	} catch (err) {
+		switch (err.name) {
+			case 'missingEmailAndPlatformId':
+			case 'missingPlatform':
+				err.status = 400;
+				break;
+		}
+
 		console.log(`Error when creating user`, err.message);
 		next(err);
 	}

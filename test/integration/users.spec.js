@@ -64,17 +64,50 @@ describe('/users route', () => {
 				});
 
 			expect(res.statusCode).toBe(201);
-			expect(res.body[0]).toHaveProperty('id');
-			expect(res.body[0].id).toEqual(expect.any(Number));
+			expect(res.body).toHaveProperty('id');
+			expect(res.body.id).toEqual(expect.any(Number));
 		});
 
-		it('Does not insert user without any data', async () => {
+		it('Inserts a user without an email but with a Strava ID', async () => {
 			const res = await request(app)
 				.post('/users')
-				.send();
+				.send({
+					first_name: 'Muttonchop',
+					last_name: 'Moe',
+					activity_platform: 'strava',
+					activity_platform_id: 12345
+				});
 
 			expect(res.statusCode).toBe(201);
-			expect(res.body[0]).not.toHaveProperty('id');
+			expect(res.body).toHaveProperty('id');
+		});
+
+		it('Does not insert user without an email address of Strava ID', async () => {
+			const res = await request(app)
+				.post('/users')
+				.send({
+					first_name: 'Fingerless',
+					last_name: 'Freddy',
+				});
+
+			expect(res.statusCode).toBe(400);
+			expect(res.body).not.toHaveProperty('id');
+			expect(res.text).toEqual('User requires either an email address or an activity platform ID.');
+		});
+
+		it('Does not insert user when platform ID is set out without platform name', async () => {
+			const res = await request(app)
+				.post('/users')
+				.send({
+					first_name: 'Cottontop',
+					last_name: 'Cal',
+					email: 'cottontop.cal@ex.dev',
+					activity_platform_id: 23456
+				});
+
+			expect(res.statusCode).toBe(400);
+			expect(res.body).not.toHaveProperty('id');
+			expect(res.text).toEqual('User requires activity platform when setting activity platform ID.');
 		});
 	});
 });

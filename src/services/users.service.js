@@ -33,20 +33,51 @@ const create = async (data) => {
 		first_name,
 		last_name,
 		email,
-		profile_photo = ''
+		profile_photo = '',
+		activity_platform,
+		activity_platform_id
 	} = data;
 
-	const sql = 'INSERT INTO public.users(first_name, last_name, email, profile_photo) VALUES($1, $2, $3, $4) RETURNING id';
-	const values = [first_name, last_name, email, profile_photo]
-
-	try {
+	if (validate(data)) {
+		const sql = `INSERT INTO public.users(first_name, last_name, email, profile_photo, activity_platform, activity_platform_id)
+				VALUES($1, $2, $3, $4, $5, $6)
+				RETURNING id`;
+		const values = [first_name, last_name, email, profile_photo, activity_platform, activity_platform_id];
 		const result = await db.query(sql, values);
 		return result.rows[0];
-	} catch (err) {
-		console.log(err.stack);
+	}
+}
+
+/**
+ * Validate user data before inserting.
+ * @param {object} data
+ * @returns Error|true
+ */
+const validate = (data) => {
+	const {
+		first_name,
+		last_name,
+		email,
+		profile_photo = '',
+		activity_platform,
+		activity_platform_id
+	} = data;
+
+	// Email OR activity platform ID must be set.
+	if (!email && !activity_platform_id) {
+		const err = new Error('User requires either an email address or an activity platform ID.');
+		err.name = 'missingEmailAndPlatformId';
+		throw err;
 	}
 
-	return false;
+	// Actiivty platform ID must be set together with platform
+	if (activity_platform_id && !activity_platform) {
+		const err = new Error('User requires activity platform when setting activity platform ID.');
+		err.name = 'missingPlatform';
+		throw err;
+	}
+
+	return true;
 }
 
 module.exports = {
