@@ -3,7 +3,9 @@ const app = express();
 
 const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
-const logger = require('morgan');
+const morgan = require('morgan');
+
+const { log4js, logger } = require('../services/logger.service');
 
 const cors = require('cors');
 const corsConfig = require('./cors.config');
@@ -15,7 +17,13 @@ const usersRouter = require('../routes/users.route');
 const authRouter = require('../routes/auth.route');
 
 // Middleware
-app.use(logger('dev'));
+app.use(morgan('dev'));
+app.use((req, res, next) => {
+	if (process.NODE_ENV === 'development') {
+		log4js.connectLogger(logger, { level: "info" });
+	}
+	next();
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -25,7 +33,7 @@ app.use(cors(corsConfig));
 /** @todo remove this eventually, or do something similar in logger? */
 app.all('*', (req, res, next) => {
 	if (process.NODE_ENV === 'development') {
-		console.log('Session ID: ' + req.session.id);
+		logger.info('Session ID: ' + req.session.id);
 	}
 	next();
 });

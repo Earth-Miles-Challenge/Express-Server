@@ -1,62 +1,81 @@
 const express = require('express');
 const router = express.Router();
-const usersServices = require('../services/users.service');
+const { getUsers, getUser, createUser, updateUser, deleteUser } = require('../services/users.service');
+const { logger } = require('../services/logger.service');
+
+async function userExists(req, res, next) {
+	const id = parseInt(req.params.id);
+	const user = await getUser(id);
+
+	if (user) {
+		req.user = user;
+		next();
+	} else {
+		const err = new Error('User does not exist.');
+		err.name = 'invalidUser';
+		err.status = 404;
+		next(err);
+	}
+}
 
 async function get(req, res, next) {
 	try {
-		const users = await usersServices.get(req.query);
+		const users = await getUsers(req.query);
 		res.json(users);
 	} catch (err) {
-		console.log(`Error when getting users`, err.message);
+		logger.debug(`Error when getting users`, err.message);
 		next(err);
 	}
 }
 
 async function getOne(req, res, next) {
-	try {
-		const user = await usersServices.getOne(req.params.id);
-		res.json(user);
-	} catch (err) {
-		console.log(`Error when getting single user`, err.message);
-	}
+	res.json(req.user);
 }
 
 async function update(req, res, next) {
 	try {
-
+		const user = await updateUser(req.user, req.body);
+		res.status(200).json(user);
 	} catch (err) {
-		console.log(`Error when updating user`, err.message);
+		err.status = getErrorStatus(err);
+		logger.debug(`Error when updating user`, err.message);
 		next(err);
 	}
 }
 
 async function create(req, res, next) {
 	try {
-		const user = await usersServices.create(req.body);
+		const user = await createUser(req.body);
 		res.status(201).json(user);
 	} catch (err) {
-		switch (err.name) {
-			case 'missingEmailAndPlatformId':
-			case 'missingPlatform':
-				err.status = 400;
-				break;
-		}
-
-		console.log(`Error when creating user`, err.message);
+		err.status = getErrorStatus(err);
+		logger.debug(`Error when creating user`, err.message);
 		next(err);
 	}
 }
 
 async function remove(req, res, next) {
 	try {
-
+		const user = await deleteUser(req.params.id);
+		res.status(200).json(user);
 	} catch (err) {
-		console.log(`Error when deleting user`, err.message);
+		err.status = getErrorStatus(err);
+		logger.debug(`Error when creating user`, err.message);
 		next(err);
 	}
 }
 
-
+function getErrorStatus(error) {
+	switch (error.name) {
+		case 'missingEmailAndPlatformId':
+		case 'missingPlatform':
+			return 400;
+		case 'invalidUser':
+			return 404;
+		default:
+			return 500;
+	}
+}
 
 
 
@@ -216,5 +235,6 @@ module.exports = {
 	getOne,
 	create,
 	update,
-	remove
+	remove,
+	userExists
 };

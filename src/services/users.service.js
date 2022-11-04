@@ -1,34 +1,23 @@
 const db = require('./database.service');
+const { logger } = require('./logger.service');
 
-const get = async (searchParams) => {
+const getUsers = async (searchParams) => {
 	const {
 		number = 20,
 		page = 1
 	} = searchParams;
 
-	try {
-		const pageOffset = page > 0 ? (page-1) * number : 0;
-		const result = await db.query(`SELECT * FROM users LIMIT ${number} OFFSET ${pageOffset}`);
-		return result.rows;
-	} catch (err) {
-		console.log(err.stack);
-	}
-
-	return false;
+	const pageOffset = page > 0 ? (page-1) * number : 0;
+	const result = await db.query(`SELECT * FROM users LIMIT ${number} OFFSET ${pageOffset}`);
+	return result.rows;
 }
 
-const getOne = async (userId) => {
-	try {
-		const result = await db.query(`SELECT * FROM users WHERE id = ${userId}`);
-		return result.rows;
-	} catch (err) {
-		console.log(err.stack);
-	}
-
-	return false;
+const getUser = async (userId) => {
+	const result = await db.query(`SELECT * FROM users WHERE id = $1`, [userId]);
+	return result.rows[0];
 }
 
-const create = async (data) => {
+const createUser = async (data) => {
 	const {
 		first_name,
 		last_name,
@@ -48,6 +37,49 @@ const create = async (data) => {
 	}
 }
 
+const updateUser = async (user, data) => {
+	if (validate(Object.assign(user, data))) {
+		const validColumns = ['first_name', 'last_name', 'email', 'profile_photo', 'activity_platform', 'activity_platform_id'];
+
+		const [updateSql, n, updateValues] = Object.keys(data).reduce(([sql, n, values], column) => {
+			if (!validColumns.includes(column)) {
+				const err = new Error(`Unknown column ${column} passed.`);
+				err.name = 'invalidColumn';
+				throw err;
+			}
+
+			return [
+				[...sql, `${column} = ($${n})`],
+				n + 1,
+				[...values, data[column]]
+			];
+		}, [[], 1, []]);
+
+		const sql = `UPDATE public.users
+					SET ${updateSql.join(',')}
+					WHERE id = $${n}
+					RETURNING *`;
+
+		const result = await db.query(sql, [...updateValues, user.id]);
+		return result.rows[0];
+	}
+}
+
+const deleteUser = async (userId) => {
+	const user = await getUser(userId);
+
+	if (!user.id) {
+		const err = new Error('User does not exist.');
+		err.name = 'invalidUser';
+		throw err;
+	}
+
+	const sql = `DELETE FROM public.users
+				WHERE id = $1`;
+	const result = await db.query(sql, [userId]);
+	return result;
+}
+
 /**
  * Validate user data before inserting.
  * @param {object} data
@@ -55,10 +87,7 @@ const create = async (data) => {
  */
 const validate = (data) => {
 	const {
-		first_name,
-		last_name,
 		email,
-		profile_photo = '',
 		activity_platform,
 		activity_platform_id
 	} = data;
@@ -81,7 +110,9 @@ const validate = (data) => {
 }
 
 module.exports = {
-	get,
-	getOne,
-	create
+	getUsers,
+	getUser,
+	createUser,
+	updateUser,
+	deleteUser
 }

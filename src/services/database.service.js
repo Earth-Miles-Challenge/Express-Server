@@ -8,6 +8,16 @@ const {
 	[`PGPASSWORD_${env}`]: dbPassword
 } = process.env;
 
+const createPool = async () => {
+	return await new Pool({
+		user: dbUser,
+		host: dbHost,
+		database: dbDatabase,
+		password: dbPassword,
+		port: dbPort
+	});
+}
+
 const pool = new Pool({
 	user: dbUser,
 	host: dbHost,
@@ -17,7 +27,8 @@ const pool = new Pool({
 });
 
 module.exports = {
-	query: (text, params, callback) => {
-		return pool.query(text, params, callback)
+	pool,
+	query: async (text, params, callback) => {
+		return pool.query(text, params, callback);
 	},
 }
