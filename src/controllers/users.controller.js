@@ -56,11 +56,11 @@ async function create(req, res, next) {
 
 async function remove(req, res, next) {
 	try {
-		const user = await deleteUser(req.params.id);
-		res.status(200).json(user);
+		await deleteUser(req.params.id);
+		res.status(204).send();
 	} catch (err) {
 		err.status = getErrorStatus(err);
-		logger.debug(`Error when creating user`, err.message);
+		logger.debug(`Error when removing user`, err.message);
 		next(err);
 	}
 }

@@ -186,4 +186,22 @@ describe('/users route', () => {
 				expect(res.text).toEqual('User requires activity platform when setting activity platform ID.');
 		});
 	});
+
+	describe('DELETE /users/:id', () => {
+		it('Returns 204 status response', async () => {
+			const res = await request(app)
+				.delete('/users/1')
+				.send();
+
+			expect(res.statusCode).toBe(204);
+		});
+
+		it('Returns 404 status response for unknown user', async () => {
+			const res = await request(app)
+				.delete('/users/9999')
+				.send();
+
+			expect(res.statusCode).toBe(404);
+		});
+	});
 });
