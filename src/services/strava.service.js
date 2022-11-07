@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { logger } = require('../services/logger.service');
 
 const getClientToken = async (code) => {
 	try {
@@ -8,11 +9,11 @@ const getClientToken = async (code) => {
 			code: code,
 			grant_type: 'authorization_code'
 		});
-		console.log(response);
+
 		return response.data;
 	} catch (err) {
-		console.log(`There was an error while getting a client token from Strava`, err.message);
-		return false;
+		logger.debug(`There was an error while getting a client token from Strava:`, err.message);
+		throw err;
 	}
 }
 
