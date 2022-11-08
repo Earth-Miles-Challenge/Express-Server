@@ -3,7 +3,9 @@ const app = express();
 
 const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
+
 const morgan = require('morgan');
+const morganConfig = require('./morgan.config');
 
 const { log4js, logger } = require('../services/logger.service');
 
@@ -17,7 +19,7 @@ const usersRouter = require('../routes/users.route');
 const authRouter = require('../routes/auth.route');
 
 // Middleware
-app.use(morgan('dev'));
+app.use(morgan(morganConfig.format, morganConfig.options));
 app.use((req, res, next) => {
 	if (process.NODE_ENV === 'development') {
 		log4js.connectLogger(logger, { level: "info" });
