@@ -3,6 +3,7 @@ const axios = require('axios');
 const app = require('../../app');
 const mockAxios = require('../../__mocks__/axios');
 const { oAuthTokenResponse } = require('../../__fixtures__/strava');
+const { getEnvVariable } = require('../../src/utils/env.utils');
 
 beforeEach(() => {
 	mockAxios.post.mockClear();
@@ -19,7 +20,12 @@ describe('GET /auth/strava', () => {
 
 			expect(mockAxios.post).toHaveBeenCalledWith(
 				'https://www.strava.com/api/v3/oauth/token',
-				{ client_id: undefined, client_secret: undefined, code, grant_type: 'authorization_code' }
+				{
+					client_id: getEnvVariable('STRAVA_CLIENT_ID'),
+					client_secret: getEnvVariable('STRAVA_CLIENT_SECRET'),
+					code,
+					grant_type: 'authorization_code'
+				}
 			);
 
 			expect(res.statusCode).toBe(302);
@@ -39,7 +45,12 @@ describe('GET /auth/strava', () => {
 
 			expect(axios.post).toHaveBeenCalledWith(
 				'https://www.strava.com/api/v3/oauth/token',
-				{ client_id: undefined, client_secret: undefined, code, grant_type: 'authorization_code' }
+				{
+					client_id: getEnvVariable('STRAVA_CLIENT_ID'),
+					client_secret: getEnvVariable('STRAVA_CLIENT_SECRET'),
+					code,
+					grant_type: 'authorization_code'
+				}
 			);
 
 			expect(res.statusCode).toBe(503);

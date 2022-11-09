@@ -13,8 +13,8 @@ const getClientToken = async (code) => {
 
 		return response.data;
 	} catch (err) {
-		console.log(err);
-		console.log(err.response.data.errors);
+		// console.log(err);
+		// console.log(err.response.data.errors);
 		// logger.debug(err);
 		logger.debug(`There was an error while getting a client token from Strava:`, err.message);
 		throw err;

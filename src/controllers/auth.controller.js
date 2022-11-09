@@ -1,5 +1,6 @@
 const { logger } = require('../services/logger.service');
 const { getClientToken } = require('../services/strava.service');
+const { generateAccessToken } = require('../services/authentication.service');
 
 /**
  * Strava authentication.
@@ -14,12 +15,16 @@ async function authenticateStrava(req, res, next) {
 		err.status = 400;
 		next(err);
 	}
+
 	logger.debug(req.query);
+
 	try {
-
 		const response = await getClientToken(req.query.code);
+		const user = await getUserByPlatformId('strava', response.athlete.id)
 
-		res.json(response);
+		const token = generateAccessToken(user.id, '2d');
+
+		res.send(token);
 
 		// Use successful response to add athlete details to the session
 		// req.session.strava = response;
@@ -41,7 +46,6 @@ async function authenticateStrava(req, res, next) {
 		err.status = stravaError.status;
 		next(err);
 	}
-
 }
 
 module.exports = {

@@ -17,6 +17,16 @@ const getUser = async (userId) => {
 	return result.rows[0];
 }
 
+const getUserByPlatformId = async (platform, platform_id) => {
+	const result = await db.query(`
+		SELECT * FROM users
+		WHERE activity_platform = $1
+		AND activity_platform_id = $2`,
+		[platform, platform_id]
+	);
+	return result.rows[0];
+}
+
 const createUser = async (data) => {
 	const {
 		first_name,
@@ -106,12 +116,20 @@ const validate = (data) => {
 		throw err;
 	}
 
+	// Actiivty platform must be set together with platform ID
+	if (activity_platform && !activity_platform_id) {
+		const err = new Error('User requires activity platform ID when setting activity platform.');
+		err.name = 'missingPlatformId';
+		throw err;
+	}
+
 	return true;
 }
 
 module.exports = {
 	getUsers,
 	getUser,
+	getUserByPlatformId,
 	createUser,
 	updateUser,
 	deleteUser
