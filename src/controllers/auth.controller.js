@@ -1,4 +1,5 @@
 const { logger } = require('../services/logger.service');
+const { getUserByPlatformId, createUser, updateUser } = require('../services/users.service');
 const { getClientToken } = require('../services/strava.service');
 const { generateAccessToken } = require('../services/authentication.service');
 
@@ -20,27 +21,26 @@ async function authenticateStrava(req, res, next) {
 
 	try {
 		const response = await getClientToken(req.query.code);
-		const user = await getUserByPlatformId('strava', response.athlete.id)
-
-		const token = generateAccessToken(user.id, '2d');
-
-		res.send(token);
-
-		// Use successful response to add athlete details to the session
-		// req.session.strava = response;
-		// req.session.profile = {
-		// 	...req.session.profile,
-		// 	strava_id: response.athlete.id,
-		// 	first_name: response.athlete.firstname,
-		// 	last_name: response.athlete.lastname,
-		// 	picture: response.athlete.profile,
-		// 	city: response.athlete.city,
-		// 	state: response.athlete.state,
-		// 	country: response.athlete.country
-		// }
-
-		// const redirect = req.query.state || process.env.CLIENT_URI
-		// res.redirect(redirect);
+		try {
+			const userData = {
+				'first_name': response.athlete.firstname,
+				'last_name': response.athlete.lastname,
+				'profile_photo': response.athlete.profile,
+				'activity_platform': 'strava',
+				'activity_platform_id': response.athlete.id
+			};
+			const existingUser = await getUserByPlatformId('strava', response.athlete.id)
+			const user = existingUser
+				? await updateUser(existingUser.id, userData)
+				: await createUser(userData);
+			const tokenKeys = [ 'id', 'first_name', 'last_name', 'profile_photo', 'activity_platform' ];
+			const filteredData = Object.entries(user).filter(([key, value]) => -1 !== tokenKeys.indexOf(key) );
+			const tokenData = Object.fromEntries(filteredData);
+			const token = generateAccessToken(tokenData, '2 days');
+			res.send(token);
+		} catch (err) {
+			next(err);
+		}
 	} catch (stravaError) {
 		const err = new Error(`Error while obtaining Strava client token: ${stravaError.message} [${stravaError.status}]`);
 		err.status = stravaError.status;

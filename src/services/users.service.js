@@ -1,7 +1,7 @@
 const db = require('./database.service');
 const { logger } = require('./logger.service');
 
-const getUsers = async (searchParams) => {
+const getUsers = async (searchParams = {}) => {
 	const {
 		number = 20,
 		page = 1
@@ -47,11 +47,19 @@ const createUser = async (data) => {
 	}
 }
 
-const updateUser = async (user, data) => {
-	if (validate(Object.assign(user, data))) {
+const updateUser = async (userId, newData) => {
+	const existingData = await getUser(userId);
+
+	if (!existingData) {
+		const err = new Error(`User does not exist.`);
+		err.name = 'invalidUser';
+		throw err;
+	}
+
+	if (validate(Object.assign(existingData, newData))) {
 		const validColumns = ['first_name', 'last_name', 'email', 'profile_photo', 'activity_platform', 'activity_platform_id'];
 
-		const [updateSql, n, updateValues] = Object.keys(data).reduce(([sql, n, values], column) => {
+		const [updateSql, n, updateValues] = Object.keys(newData).reduce(([sql, n, values], column) => {
 			if (!validColumns.includes(column)) {
 				const err = new Error(`Unknown column ${column} passed.`);
 				err.name = 'invalidColumn';
@@ -61,7 +69,7 @@ const updateUser = async (user, data) => {
 			return [
 				[...sql, `${column} = ($${n})`],
 				n + 1,
-				[...values, data[column]]
+				[...values, newData[column]]
 			];
 		}, [[], 1, []]);
 
@@ -70,7 +78,7 @@ const updateUser = async (user, data) => {
 					WHERE id = $${n}
 					RETURNING *`;
 
-		const result = await db.query(sql, [...updateValues, user.id]);
+		const result = await db.query(sql, [...updateValues, userId]);
 		return result.rows[0];
 	}
 }
@@ -78,7 +86,7 @@ const updateUser = async (user, data) => {
 const deleteUser = async (userId) => {
 	const user = await getUser(userId);
 
-	if (!user.id) {
+	if (!user) {
 		const err = new Error('User does not exist.');
 		err.name = 'invalidUser';
 		throw err;
@@ -87,7 +95,7 @@ const deleteUser = async (userId) => {
 	const sql = `DELETE FROM public.users
 				WHERE id = $1`;
 	const result = await db.query(sql, [userId]);
-	return result;
+	return result.rowCount;
 }
 
 /**

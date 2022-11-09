@@ -34,7 +34,7 @@ async function getOne(req, res, next) {
 
 async function update(req, res, next) {
 	try {
-		const user = await updateUser(req.user, req.body);
+		const user = await updateUser(req.user.id, req.body);
 		res.status(200).json(user);
 	} catch (err) {
 		err.status = getErrorStatus(err);
