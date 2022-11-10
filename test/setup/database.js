@@ -1,5 +1,5 @@
-const { closePool, initializeDatabase, clearDatabase } = require('../utils/database');
+const { closePool } = require('../utils/database');
 
 // beforeEach(initializeDatabase);
 // afterEach(clearDatabase);
-// afterAll(closePool)
+afterAll(closePool);

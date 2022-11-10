@@ -1,11 +1,11 @@
 const request = require('supertest');
 const app = require('../../app');
 const { generatePlatformId, generateEmail, generateNewUser } = require('../utils/fixture-generator');
-const { initializeDatabase, clearDatabase } = require('../utils/database');
+const { initializeDatabase } = require('../utils/database');
 const { update } = require('../../src/controllers/users.controller');
 
-beforeAll(initializeDatabase);
-afterAll(clearDatabase);
+beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
+// afterAll(() => clearDatabase());
 
 describe('/users route', () => {
 	describe('GET /users/', () => {
@@ -51,17 +51,12 @@ describe('/users route', () => {
 	describe('GET /users/:id', () => {
 		describe('when fetching existing user', () => {
 			it('should return 200 and a single user object', async () => {
-				const expectedUser = {
-					'first_name': 'Isaiah',
-					'last_name': 'Neal',
-					'email': 'helicopter1850@live.com'
-				};
-
+				const newUser = await generateNewUser();
 				const res = await request(app)
-					.get('/users/3');
+					.get(`/users/${newUser.id}`);
 
 				expect(res.statusCode).toBe(200);
-				expect(res.body).toEqual(expect.objectContaining(expectedUser));
+				expect(res.body).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(newUser))));
 			});
 		});
 

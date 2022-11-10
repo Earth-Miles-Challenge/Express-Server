@@ -2,21 +2,24 @@ const db = require('../../src/services/database.service');
 const { usersSqlValues } = require('./data/users.js');
 const { logger } = require('../../src/services/logger.service');
 
+/**
+ * Set up database initially using a transaction.
+ *
+ * @see https://node-postgres.com/features/transactions
+ */
 const initializeDatabase = async () => {
+	const client = await db.pool.connect();
 	try {
-		await db.query(`INSERT INTO users (email, first_name, last_name) VALUES ${usersSqlValues}`);
-	} catch (err) {
-		logger.error(err);
-	}
-}
-
-const clearDatabase = async () => {
-	try {
-		await db.query(`TRUNCATE TABLE activities, strava_connection_details, users;`);
-		await db.query(`ALTER SEQUENCE users_id_seq RESTART WITH 1;`);
-		closePool();
-	} catch (err) {
-		logger.error(err);
+		await client.query('BEGIN');
+		await client.query(`TRUNCATE TABLE activities, strava_connection_details, users;`);
+		await client.query(`ALTER SEQUENCE users_id_seq RESTART WITH 1;`);
+		await client.query(`INSERT INTO users (email, first_name, last_name) VALUES ${usersSqlValues} RETURNING *`);
+		await client.query('COMMIT');
+	} catch (e) {
+		await client.query('ROLLBACK');
+		throw e;
+	} finally {
+		client.release();
 	}
 }
 
@@ -35,7 +38,6 @@ const getNextUserId = async () => {
 
 module.exports = {
 	initializeDatabase,
-	clearDatabase,
 	closePool,
 	getNextUserId
 }

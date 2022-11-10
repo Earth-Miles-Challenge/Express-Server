@@ -5,10 +5,11 @@ const mockAxios = require('../../__mocks__/axios');
 const { oAuthTokenResponse } = require('../../__fixtures__/strava');
 const { getEnvVariable } = require('../../src/utils/env.utils');
 const { generateAccessToken, verifyAccessToken } = require('../../src/services/authentication.service');
-const { initializeDatabase, clearDatabase, getNextUserId } = require('../utils/database');
+const { initializeDatabase, getNextUserId } = require('../utils/database');
 
-beforeAll(initializeDatabase);
-afterAll(clearDatabase);
+// beforeAll(() => initializeDatabase());
+// afterAll(() => clearDatabase());
+beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
 beforeEach(() => mockAxios.post.mockClear());
 
 describe('GET /auth/strava', () => {
