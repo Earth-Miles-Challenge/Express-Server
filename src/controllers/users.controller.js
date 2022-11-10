@@ -69,6 +69,7 @@ function getErrorStatus(error) {
 	switch (error.name) {
 		case 'missingEmailAndPlatformId':
 		case 'missingPlatform':
+		case 'missingPlatformId':
 			return 400;
 		case 'invalidUser':
 			return 404;

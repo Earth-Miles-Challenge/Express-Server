@@ -1,7 +1,7 @@
 const { logger } = require('../services/logger.service');
 const { getUserByPlatformId, createUser, updateUser } = require('../services/users.service');
 const { getClientToken } = require('../services/strava.service');
-const { generateAccessToken } = require('../services/authentication.service');
+const { generateAccessToken, verifyAccessToken } = require('../services/authentication.service');
 
 /**
  * Strava authentication.

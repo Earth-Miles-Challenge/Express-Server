@@ -1,8 +1,8 @@
 module.exports = {
 	appenders: {
-		console: { type: "console" },
+		console: { type: process.env.NODE_ENV === 'test' ? 'stdout' : 'console' },
 	},
 	categories: {
-		default: { appenders: ["console"], level: "info" },
+		default: { appenders: ['console'], level: 'info' },
 	},
   }

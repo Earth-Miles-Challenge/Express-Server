@@ -40,7 +40,7 @@ const createUser = async (data) => {
 	if (validate(data)) {
 		const sql = `INSERT INTO public.users(first_name, last_name, email, profile_photo, activity_platform, activity_platform_id)
 				VALUES($1, $2, $3, $4, $5, $6)
-				RETURNING id`;
+				RETURNING *`;
 		const values = [first_name, last_name, email, profile_photo, activity_platform, activity_platform_id];
 		const result = await db.query(sql, values);
 		return result.rows[0];

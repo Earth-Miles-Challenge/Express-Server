@@ -4,29 +4,25 @@ const app = require('../../app');
 const mockAxios = require('../../__mocks__/axios');
 const { oAuthTokenResponse } = require('../../__fixtures__/strava');
 const { getEnvVariable } = require('../../src/utils/env.utils');
-const { generateAccessToken } = require('../../src/services/authentication.service');
-const { initializeDatabase, clearDatabase } = require('../utils/database');
+const { generateAccessToken, verifyAccessToken } = require('../../src/services/authentication.service');
+const { initializeDatabase, clearDatabase, getNextUserId } = require('../utils/database');
 
-beforeAll(() => {
-	clearDatabase();
-});
-
-beforeEach(() => {
-	mockAxios.post.mockClear();
-});
+beforeAll(initializeDatabase);
+afterAll(clearDatabase);
+beforeEach(() => mockAxios.post.mockClear());
 
 describe('GET /auth/strava', () => {
 	describe('when code and scope are set and API request succeeds', () => {
 		it('should return JWT', async () => {
 			mockAxios.post.mockResolvedValueOnce(oAuthTokenResponse);
 
-			const expectedToken = generateAccessToken({
-				id: 1,
-				first_name: 'Pascal',
-				last_name: 'Grant',
-				profile_photo: 'pascal.grant',
+			const expectedUser = {
+				first_name: oAuthTokenResponse.data.athlete.firstname,
+				last_name: oAuthTokenResponse.data.athlete.lastname,
+				profile_photo: oAuthTokenResponse.data.athlete.profile,
 				activity_platform: 'strava'
-			}, '2 days');
+			};
+
 			const code = '123456';
 			const res = await request(app)
 				.get(`/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
@@ -41,8 +37,11 @@ describe('GET /auth/strava', () => {
 				}
 			);
 
-			expect(res.text).toBe(expectedToken);
 			expect(res.statusCode).toBe(200);
+
+			// Check that the decoded token has the data we expect
+			const decodedToken = verifyAccessToken(res.text);
+			expect(decodedToken).toEqual(expect.objectContaining(expectedUser));
 		});
 	});
 

@@ -10,8 +10,8 @@ describe('Database service', () => {
 			const response = await db.query(`
 				SELECT tablename
 				FROM pg_catalog.pg_tables
-				WHERE schemaname != 'pg_catalog' AND
-				schemaname != 'information_schema';
+				WHERE schemaname != 'pg_catalog'
+				AND schemaname != 'information_schema';
 			`);
 
 			expect(response).toHaveProperty('rows');

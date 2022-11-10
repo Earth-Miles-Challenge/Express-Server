@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS "users" (
   "profile_photo" varchar(256),
   "activity_platform" activity_platform,
   "activity_platform_id" varchar(128),
-  "created_at" timestamp,
+  "created_at" timestamp default now(),
   UNIQUE (activity_platform, activity_platform_id)
 );
 

@@ -1,8 +1,9 @@
 const { createUser, getUser, getUserByPlatformId, getUsers, updateUser, deleteUser } = require('../../src/services/users.service');
 const { initializeDatabase, clearDatabase } = require('../utils/database');
+const { generatePlatformId, generateEmail, generateNewUser } = require('../utils/fixture-generator');
 
-beforeEach(initializeDatabase);
-afterEach(clearDatabase);
+beforeAll(initializeDatabase);
+afterAll(clearDatabase);
 
 describe('Users service', () => {
 	describe('getUsers', () => {
@@ -94,16 +95,15 @@ describe('Users service', () => {
 	describe('getUserByPlatformId', () => {
 		describe('when called with platform ID of existing user', () => {
 			it('should return user object', async () => {
-				const userData = {
-					first_name: 'Test',
-					last_name: 'User',
-					email: 'test.user@ex.dev',
-					activity_platform_id: '11111',
-					activity_platform: 'strava'
-				}
+				const platformId = generatePlatformId();
+				const platform = 'strava';
 
-				const res = await createUser(userData);
-				const user = await getUserByPlatformId('strava', '11111');
+				const userData = await generateNewUser({
+					activity_platform_id: platformId,
+					activity_platform: platform
+				});
+
+				const user = await getUserByPlatformId(platform, platformId);
 				expect(user).toEqual(expect.objectContaining(userData));
 			});
 		});
@@ -123,9 +123,9 @@ describe('Users service', () => {
 				const res = await createUser({
 					first_name: 'Test',
 					last_name: 'User',
-					email: 'test.user@ex.dev',
+					email: generateEmail(),
 					profile_photo: 'https://localhost:9000/user-profile-image.jpg',
-					activity_platform_id: '11111',
+					activity_platform_id: generatePlatformId(),
 					activity_platform: 'strava'
 				});
 
@@ -139,7 +139,7 @@ describe('Users service', () => {
 				const res = await createUser({
 					first_name: 'Test',
 					last_name: 'User',
-					activity_platform_id: '11111',
+					activity_platform_id: generatePlatformId(),
 					activity_platform: 'strava'
 				});
 
@@ -153,7 +153,7 @@ describe('Users service', () => {
 				const res = await createUser({
 					first_name: 'Test',
 					last_name: 'User',
-					email: 'test@user.dev'
+					email: generateEmail(),
 				});
 
 				expect(res).toHaveProperty('id');
@@ -180,8 +180,8 @@ describe('Users service', () => {
 					createUser({
 						first_name: 'Test',
 						last_name: 'User',
-						email: 'test@user.dev',
-						activity_platform_id: '11111'
+						email: generateEmail(),
+						activity_platform_id: generatePlatformId()
 					})
 				)
 				.rejects
@@ -195,7 +195,7 @@ describe('Users service', () => {
 					createUser({
 						first_name: 'Test',
 						last_name: 'User',
-						email: 'test@user.dev',
+						email: generateEmail(),
 						activity_platform: 'strava'
 					})
 				)
@@ -208,16 +208,13 @@ describe('Users service', () => {
 	describe('updateUser', () => {
 		describe('when updating user with valid values', () => {
 			it('should return updated user', async () => {
+				const newUser = await generateNewUser();
 				const expectedUser = {
-					'first_name': 'Isaiah',
-					'last_name': 'Neal',
-					'email': 'helicopter1850@gmail.com'
+					...newUser,
+					email: generateEmail()
 				}
-
-				const userId = 3;
-
-				const user = await updateUser(userId, {
-					'email': 'helicopter1850@gmail.com'
+				const user = await updateUser(newUser.id, {
+					'email': expectedUser.email
 				});
 
 				expect(user).toEqual(expect.objectContaining(expectedUser));
@@ -226,10 +223,10 @@ describe('Users service', () => {
 
 		describe('when updating user results in missing email & platform ID', () => {
 			it('should throw an error', async () => {
-				const userId = 3;
+				const newUser = await generateNewUser();
 
 				await expect(
-					updateUser(userId, {
+					updateUser(newUser.id, {
 						'email': ''
 					})
 				)
@@ -240,10 +237,10 @@ describe('Users service', () => {
 
 		describe('when updating user results in missing platform ID with platform set', () => {
 			it('should throw an error', async () => {
-				const userId = 3;
+				const newUser = await generateNewUser();
 
 				await expect(
-					updateUser(userId, {
+					updateUser(newUser.id, {
 						'activity_platform': 'strava'
 					})
 				)
@@ -254,11 +251,11 @@ describe('Users service', () => {
 
 		describe('when updating user results in missing platform with platform ID set', () => {
 			it('should throw an error', async () => {
-				const userId = 3;
+				const newUser = await generateNewUser();
 
 				await expect(
-					updateUser(userId, {
-						'activity_platform_id': '11111'
+					updateUser(newUser.id, {
+						'activity_platform_id': generatePlatformId()
 					})
 				)
 				.rejects
@@ -273,7 +270,7 @@ describe('Users service', () => {
 				await expect(
 					updateUser(userId, {
 						'activity_platform': 'strava',
-						'activity_platform_id': '11111'
+						'activity_platform_id': generatePlatformId()
 					})
 				)
 				.rejects
@@ -285,7 +282,8 @@ describe('Users service', () => {
 	describe('deleteUser', () => {
 		describe('when deleting existing user', () => {
 			it('should return 1', async () => {
-				const res = await deleteUser(1);
+				const newUser = await generateNewUser();
+				const res = await deleteUser(newUser.id);
 				expect(res).toBe(1);
 			});
 		});
