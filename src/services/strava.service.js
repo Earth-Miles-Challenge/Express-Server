@@ -1,6 +1,37 @@
+const db = require('./database.service');
 const axios = require('axios');
 const { logger } = require('../services/logger.service');
 const { getEnvVariable } = require('../utils/env.utils');
+
+const getStravaConnectionDetails = async (userId) => {
+	const result = await db.query(`SELECT * FROM strava_connection_details WHERE user_id = $1`, [userId]);
+	return result.rows[0];
+}
+
+const createStravaConnectionDetails = async (data) => {
+	const {
+		user_id,
+		strava_id,
+		expires_at,
+		expires_in,
+		refresh_token,
+		access_token
+	} = data;
+	const sql = `INSERT INTO strava_connection_details(user_id, strava_id, expires_at, expires_in, refresh_token, access_token)
+			VALUES($1, $2, $3, $4, $5, $6)
+			RETURNING *`;
+	const values = [user_id, strava_id, expires_at, expires_in, refresh_token, access_token];
+	const result = await db.query(sql, values);
+	return result.rows[0];
+}
+
+const updateStravaConnectionDetails = async (userId, data) => {
+
+}
+
+const deleteStravaConnectionDetails = async (userId) => {
+
+}
 
 const getClientToken = async (code) => {
 	try {
@@ -13,9 +44,6 @@ const getClientToken = async (code) => {
 
 		return response.data;
 	} catch (err) {
-		// console.log(err);
-		// console.log(err.response.data.errors);
-		// logger.debug(err);
 		logger.debug(`There was an error while getting a client token from Strava:`, err.message);
 		throw err;
 	}
@@ -37,6 +65,10 @@ const getAthleteActivities = (req) => {
 }
 
 module.exports = {
+	getStravaConnectionDetails,
+	createStravaConnectionDetails,
+	updateStravaConnectionDetails,
+	deleteStravaConnectionDetails,
 	getClientToken,
 	getAthleteActivities
 }

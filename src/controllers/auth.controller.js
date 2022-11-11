@@ -1,7 +1,12 @@
 const { logger } = require('../services/logger.service');
 const { getUserByPlatformId, createUser, updateUser } = require('../services/users.service');
-const { getClientToken } = require('../services/strava.service');
-const { generateAccessToken, verifyAccessToken } = require('../services/authentication.service');
+const {
+	getClientToken,
+	getStravaConnectionDetails,
+	updateStravaConnectionDetails,
+	createStravaConnectionDetails
+} = require('../services/strava.service');
+const { generateAccessToken } = require('../services/authentication.service');
 
 /**
  * Strava authentication.
@@ -22,6 +27,7 @@ async function authenticateStrava(req, res, next) {
 	try {
 		const response = await getClientToken(req.query.code);
 		try {
+			// Save the user
 			const userData = {
 				'first_name': response.athlete.firstname,
 				'last_name': response.athlete.lastname,
@@ -33,6 +39,22 @@ async function authenticateStrava(req, res, next) {
 			const user = existingUser
 				? await updateUser(existingUser.id, userData)
 				: await createUser(userData);
+
+			// Save the Strava connection details
+			const hasStravaConn = existingUser ? await getStravaConnectionDetails(user.id) : false;
+			const stravaConnData = {
+				user_id: user.id,
+				strava_id: response.athlete.id,
+				expires_at: response.expires_at,
+				expires_in: response.expires_in,
+				refresh_token: response.refresh_token,
+				access_token: response.access_token
+			}
+			hasStravaConn
+				? await updateStravaConnectionDetails(user.id, stravaConnData)
+				: await createStravaConnectionDetails(stravaConnData);
+
+			// Generate the token
 			const tokenKeys = [ 'id', 'first_name', 'last_name', 'profile_photo', 'activity_platform' ];
 			const filteredData = Object.entries(user).filter(([key, value]) => -1 !== tokenKeys.indexOf(key) );
 			const tokenData = Object.fromEntries(filteredData);

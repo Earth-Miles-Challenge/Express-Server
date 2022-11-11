@@ -2,10 +2,8 @@ const request = require('supertest');
 const app = require('../../app');
 const { generatePlatformId, generateEmail, generateNewUser } = require('../utils/fixture-generator');
 const { initializeDatabase } = require('../utils/database');
-const { update } = require('../../src/controllers/users.controller');
 
 beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
-// afterAll(() => clearDatabase());
 
 describe('/users route', () => {
 	describe('GET /users/', () => {

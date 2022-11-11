@@ -4,8 +4,10 @@ const app = require('../../app');
 const mockAxios = require('../../__mocks__/axios');
 const { oAuthTokenResponse } = require('../../__fixtures__/strava');
 const { getEnvVariable } = require('../../src/utils/env.utils');
-const { generateAccessToken, verifyAccessToken } = require('../../src/services/authentication.service');
-const { initializeDatabase, getNextUserId } = require('../utils/database');
+const { verifyAccessToken } = require('../../src/services/authentication.service');
+const { getUser } = require('../../src/services/users.service');
+const { getStravaConnectionDetails } = require('../../src/services/strava.service');
+const { initializeDatabase } = require('../utils/database');
 
 // beforeAll(() => initializeDatabase());
 // afterAll(() => clearDatabase());
@@ -14,7 +16,24 @@ beforeEach(() => mockAxios.post.mockClear());
 
 describe('GET /auth/strava', () => {
 	describe('when code and scope are set and API request succeeds', () => {
-		it('should return JWT', async () => {
+		it('should make Strava OAuth Token request', async () => {
+			mockAxios.post.mockResolvedValueOnce(oAuthTokenResponse);
+			const code = '123456';
+			await request(app)
+				.get(`/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
+
+			expect(mockAxios.post).toHaveBeenCalledWith(
+				'https://www.strava.com/api/v3/oauth/token',
+				{
+					client_id: getEnvVariable('STRAVA_CLIENT_ID'),
+					client_secret: getEnvVariable('STRAVA_CLIENT_SECRET'),
+					code,
+					grant_type: 'authorization_code'
+				}
+			);
+		});
+
+		it('should return JWT containing user object for existing user', async () => {
 			mockAxios.post.mockResolvedValueOnce(oAuthTokenResponse);
 
 			const expectedUser = {
@@ -28,21 +47,19 @@ describe('GET /auth/strava', () => {
 			const res = await request(app)
 				.get(`/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
 
-			expect(mockAxios.post).toHaveBeenCalledWith(
-				'https://www.strava.com/api/v3/oauth/token',
-				{
-					client_id: getEnvVariable('STRAVA_CLIENT_ID'),
-					client_secret: getEnvVariable('STRAVA_CLIENT_SECRET'),
-					code,
-					grant_type: 'authorization_code'
-				}
-			);
-
 			expect(res.statusCode).toBe(200);
 
 			// Check that the decoded token has the data we expect
 			const decodedToken = verifyAccessToken(res.text);
 			expect(decodedToken).toEqual(expect.objectContaining(expectedUser));
+
+			// Check that the user exists
+			const user = await getUser(decodedToken.id);
+			expect(user).toEqual(expect.objectContaining(expectedUser));
+
+			// Check that the Strava connection details exist
+			const stravaConn = await getStravaConnectionDetails(decodedToken.id);
+			expect(stravaConn).not.toBeFalsy();
 		});
 	});
 
