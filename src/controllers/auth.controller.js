@@ -36,12 +36,15 @@ async function authenticateStrava(req, res, next) {
 				'activity_platform_id': response.athlete.id
 			};
 			const existingUser = await getUserByPlatformId('strava', response.athlete.id)
-			const user = existingUser
-				? await updateUser(existingUser.id, userData)
-				: await createUser(userData);
+
+			const user = !existingUser
+				? await createUser(userData)
+				: await updateUser(existingUser.id, userData);
 
 			// Save the Strava connection details
-			const hasStravaConn = existingUser ? await getStravaConnectionDetails(user.id) : false;
+			const hasStravaConn = !! existingUser
+				? await getStravaConnectionDetails(user.id)
+				: false;
 			const stravaConnData = {
 				user_id: user.id,
 				strava_id: response.athlete.id,
@@ -50,9 +53,9 @@ async function authenticateStrava(req, res, next) {
 				refresh_token: response.refresh_token,
 				access_token: response.access_token
 			}
-			hasStravaConn
-				? await updateStravaConnectionDetails(user.id, stravaConnData)
-				: await createStravaConnectionDetails(stravaConnData);
+			!hasStravaConn
+				? await createStravaConnectionDetails(stravaConnData)
+				: await updateStravaConnectionDetails(user.id, stravaConnData);
 
 			// Generate the token
 			const tokenKeys = [ 'id', 'first_name', 'last_name', 'profile_photo', 'activity_platform' ];

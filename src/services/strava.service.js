@@ -25,8 +25,37 @@ const createStravaConnectionDetails = async (data) => {
 	return result.rows[0];
 }
 
-const updateStravaConnectionDetails = async (userId, data) => {
+const updateStravaConnectionDetails = async (userId, newData) => {
+	const existingData = await getStravaConnectionDetails(userId);
 
+	if (!existingData) {
+		const err = new Error(`Strava connection details do not exist.`);
+		err.name = 'invalidUser';
+		throw err;
+	}
+
+	const validColumns = ['user_id', 'strava_id', 'expires_at', 'expires_in', 'refresh_token', 'access_token'];
+	const [updateSql, n, updateValues] = Object.keys(newData).reduce(([sql, n, values], column) => {
+		if (!validColumns.includes(column)) {
+			const err = new Error(`Unknown column ${column} passed.`);
+			err.name = 'invalidColumn';
+			throw err;
+		}
+
+		return [
+			[...sql, `${column} = ($${n})`],
+			n + 1,
+			[...values, newData[column]]
+		];
+	}, [[], 1, []]);
+
+	const sql = `UPDATE strava_connection_details
+				SET ${updateSql.join(',')}
+				WHERE user_id = $${n}
+				RETURNING *`;
+
+	const result = await db.query(sql, [...updateValues, userId]);
+	return result.rows[0];
 }
 
 const deleteStravaConnectionDetails = async (userId) => {

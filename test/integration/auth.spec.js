@@ -6,12 +6,13 @@ const { oAuthTokenResponse } = require('../../__fixtures__/strava');
 const { getEnvVariable } = require('../../src/utils/env.utils');
 const { verifyAccessToken } = require('../../src/services/authentication.service');
 const { getUser } = require('../../src/services/users.service');
-const { getStravaConnectionDetails } = require('../../src/services/strava.service');
+const { createStravaConnectionDetails, getStravaConnectionDetails } = require('../../src/services/strava.service');
 const { initializeDatabase } = require('../utils/database');
+const { generateNewUser } = require('../utils/fixture-generator');
 
 // beforeAll(() => initializeDatabase());
 // afterAll(() => clearDatabase());
-beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
+beforeEach(() => initializeDatabase().catch(e => console.error(e.stack)));
 beforeEach(() => mockAxios.post.mockClear());
 
 describe('GET /auth/strava', () => {
@@ -33,7 +34,7 @@ describe('GET /auth/strava', () => {
 			);
 		});
 
-		it('should return JWT containing user object for existing user', async () => {
+		it('should return JWT containing user object for new user', async () => {
 			mockAxios.post.mockResolvedValueOnce(oAuthTokenResponse);
 
 			const expectedUser = {
@@ -60,6 +61,33 @@ describe('GET /auth/strava', () => {
 			// Check that the Strava connection details exist
 			const stravaConn = await getStravaConnectionDetails(decodedToken.id);
 			expect(stravaConn).not.toBeFalsy();
+		});
+
+		it('should return JWT containing user object for updated user', async () => {
+			mockAxios.post.mockResolvedValueOnce(oAuthTokenResponse);
+
+			const user = await generateNewUser({
+				activity_platform: 'strava',
+				activity_platform_id: oAuthTokenResponse.data.athlete.id
+			});
+
+			const oldStravaConn = await createStravaConnectionDetails({
+				user_id: user.id,
+				strava_id: oAuthTokenResponse.data.athlete.id,
+				expires_at: 20000000,
+				expires_in: 21600,
+				refresh_token: 'tobechanged',
+				access_token: 'tobechanged',
+			});
+
+			const code = '123456';
+			const res = await request(app)
+				.get(`/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
+
+			// Get the Strava connection
+			const decodedToken = verifyAccessToken(res.text);
+			const newStravaConn = await getStravaConnectionDetails(decodedToken.id);
+			expect(newStravaConn).not.toEqual(oldStravaConn);
 		});
 	});
 
