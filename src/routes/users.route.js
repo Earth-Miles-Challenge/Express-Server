@@ -12,4 +12,6 @@ router.put('/:id', usersController.userExists, usersController.update);
 
 router.delete('/:id', usersController.userExists, usersController.remove);
 
+router.all('/:id/*')
+
 module.exports = router;

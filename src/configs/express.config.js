@@ -16,6 +16,7 @@ const session = require('express-session');
 const sessionConfig = require('./session.config');
 
 const usersRouter = require('../routes/users.route');
+const activitiesRouter = require('../routes/activities.route');
 const authRouter = require('../routes/auth.route');
 
 // Middleware
@@ -41,6 +42,7 @@ app.all('*', (req, res, next) => {
 });
 
 // Routers
+app.use('/users/:id/activities', activitiesRouter);
 app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 

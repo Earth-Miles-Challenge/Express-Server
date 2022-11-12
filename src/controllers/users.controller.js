@@ -3,21 +3,6 @@ const router = express.Router();
 const { getUsers, getUser, createUser, updateUser, deleteUser } = require('../services/users.service');
 const { logger } = require('../services/logger.service');
 
-async function userExists(req, res, next) {
-	const id = parseInt(req.params.id);
-	const user = await getUser(id);
-
-	if (user) {
-		req.user = user;
-		next();
-	} else {
-		const err = new Error('User does not exist.');
-		err.name = 'invalidUser';
-		err.status = 404;
-		next(err);
-	}
-}
-
 async function get(req, res, next) {
 	try {
 		const users = await getUsers(req.query);
@@ -61,6 +46,21 @@ async function remove(req, res, next) {
 	} catch (err) {
 		err.status = getErrorStatus(err);
 		logger.debug(`Error when removing user`, err.message);
+		next(err);
+	}
+}
+
+async function userExists(req, res, next) {
+	const id = parseInt(req.params.id);
+	const user = await getUser(id);
+
+	if (user) {
+		req.user = user;
+		next();
+	} else {
+		const err = new Error('User does not exist.');
+		err.name = 'invalidUser';
+		err.status = 404;
 		next(err);
 	}
 }
