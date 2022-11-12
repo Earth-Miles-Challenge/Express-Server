@@ -52,7 +52,13 @@ app.use(function(req, res, next) {
 // Error handler
 app.use(function(err, req, res, next) {
 	res.locals.message = err.message;
-	res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+	if (req.app.get('env')=== 'development') {
+		console.error(err);
+		res.locals.error = err;
+	} else {
+		res.locals.error = {};
+	}
 
 	res.status(err.status || 500);
 	res.send(err.message);

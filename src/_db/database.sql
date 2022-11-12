@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS "users" (
 
 CREATE TABLE IF NOT EXISTS "strava_connection_details" (
   "user_id" int REFERENCES "users" (id),
+  "strava_id" int,
   "expires_at" int,
   "expires_in" int,
   "refresh_token" varchar,

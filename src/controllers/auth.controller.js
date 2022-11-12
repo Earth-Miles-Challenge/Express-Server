@@ -62,7 +62,15 @@ async function authenticateStrava(req, res, next) {
 			const filteredData = Object.entries(user).filter(([key, value]) => -1 !== tokenKeys.indexOf(key) );
 			const tokenData = Object.fromEntries(filteredData);
 			const token = generateAccessToken(tokenData, '2 days');
-			res.send(token);
+			res.cookie('token', token, {
+				domain: 'localhost',
+				secure: false,
+				httpOnly: false
+			});
+			res.json({
+				success: true,
+				data: {}
+			});
 		} catch (err) {
 			next(err);
 		}
