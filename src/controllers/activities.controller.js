@@ -18,6 +18,27 @@ async function get(req, res, next) {
 	}
 }
 
+async function getOne(req, res, next) {
+	res.json(req.activity);
+}
+
+async function activityExists(req, res, next) {
+	const activityId = parseInt(req.params.activityId);
+	const activity = await getActivity(activityId);
+
+	if (activity) {
+		req.activity = activity;
+		next();
+	} else {
+		const err = new Error('Activity does not exist.');
+		err.name = 'invalidActivity';
+		err.status = 404;
+		next(err);
+	}
+}
+
 module.exports = {
-	get
+	get,
+	getOne,
+	activityExists
 };

@@ -16,7 +16,7 @@ router.all('*', authenticateToken, userHasAuthorization, userExists);
 
 router.get('/', activitiesController.get);
 
-// router.get('/:id', authenticateToken, activitiesController.userExists, activitiesController.getOne);
+router.get('/:activityId', activitiesController.activityExists, activitiesController.getOne);
 
 // router.put('/:id', authenticateToken, activitiesController.userExists, activitiesController.update);
 

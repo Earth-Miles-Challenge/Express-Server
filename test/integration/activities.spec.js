@@ -92,4 +92,31 @@ describe('/users/:id/activities route', () => {
 			});
 		});
 	});
+
+	describe('GET /users/:id/activities/:activityId', () => {
+		describe('when fetching an existing activity with required authorization', () => {
+			it('should return 200', async() => {
+				const user = await generateNewUser({
+					activity_platform: 'strava',
+					activity_platform_id: generatePlatformId()
+				});
+
+				const token = getTokenForUser(user);
+				const expectedData = {
+					"activity_type": "ride",
+					"description": "Ride to work",
+					"distance": 6000,
+					"emissions_avoided": 1152
+				}
+
+				const activity = await generateUserActivity(user, expectedData);
+				const res = await request(app)
+					.get(`/users/${user.id}/activities/${activity.id}`)
+					.set('Authorization', `Bearer ${token}`);
+
+				expect(res.statusCode).toBe(200);
+				expect(res.body).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(activity))))
+			});
+		});
+	});
 });
