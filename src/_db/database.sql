@@ -31,9 +31,10 @@ CREATE TABLE IF NOT EXISTS "strava_connection_details" (
 );
 
 CREATE TABLE IF NOT EXISTS "activities" (
-  "id" int,
+  "id" serial primary key,
   "user_id" int REFERENCES "users" (id),
-  "strava_activity_id" text,
+  "activity_platform" text,
+  "activity_platform_activity_id" text,
   "activity_type" activity_types,
   "description" varchar,
   "start_date" timestamp,

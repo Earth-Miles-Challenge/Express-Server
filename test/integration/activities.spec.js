@@ -1,25 +1,53 @@
 const request = require('supertest');
 const app = require('../../app');
 const { initializeDatabase } = require('../utils/database');
-const { generatePlatformId, generateNewUser, getTokenForUser } = require('../utils/fixture-generator');
+const {
+	generatePlatformId,
+	generateNewUser,
+	getTokenForUser,
+	generateUserActivity,
+	generateUserActivities
+} = require('../utils/fixture-generator');
 
 beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
 
 describe('/users/:id/activities route', () => {
 	describe('GET /users/:id/activities', () => {
 		describe('when fetching activities for existing user', () => {
-			it('should return a list of 3 activities', async () => {
+			it('should return a list of 20 activities by default', async () => {
 				const user = await generateNewUser({
 					activity_platform: 'strava',
 					activity_platform_id: generatePlatformId()
 				});
 				const token = getTokenForUser(user);
+
+				await generateUserActivities(25, user);
+
 				const res = await request(app)
 					.get(`/users/${user.id}/activities`)
 					.set('Authorization', 'Bearer ' + token);
 
 				expect(res.statusCode).toBe(200);
-				expect(res.body.length).toBe(3);
+				expect(res.body.length).toBe(20);
+			});
+
+			it('should return set number of activies when specified', async () => {
+				const user = await generateNewUser({
+					activity_platform: 'strava',
+					activity_platform_id: generatePlatformId()
+				});
+
+				const token = getTokenForUser(user);
+				const expectedNumber = 10;
+
+				await generateUserActivities(25, user);
+
+				const res = await request(app)
+					.get(`/users/${user.id}/activities?number=${expectedNumber}`)
+					.set('Authorization', 'Bearer ' + token);
+
+				expect(res.statusCode).toBe(200);
+				expect(res.body.length).toBe(expectedNumber);
 			});
 		});
 

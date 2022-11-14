@@ -1,12 +1,19 @@
 const { createUser } = require("../../src/services/users.service");
+const { createActivity } = require("../../src/services/activities.service");
 const { generateAccessToken } = require('../../src/services/authentication.service');
 
 let platformId = 1;
+let platformActivityId = 1;
 let emailId = 1;
 
 const generatePlatformId = () => {
 	platformId += 1;
 	return `${platformId-1}`;
+}
+
+const generatePlatformActivityId = () => {
+	platformActivityId += 1;
+	return `${platformActivityId-1}`;
 }
 
 const generateEmail = () => {
@@ -32,9 +39,41 @@ const getTokenForUser = (user) => {
 	return generateAccessToken(tokenData, '2 days');
 }
 
+const generateUserActivity = async (user, activityData = {}) => {
+	return await createActivity({
+		...{
+			"activity_platform": "strava",
+			"activity_platform_activity_id": generatePlatformActivityId(),
+			"activity_type": "run",
+			"description": "Evening Run",
+			"start_date" : "2018-02-20T18:02:13Z",
+			"start_date_local" : "2018-02-20T10:02:13Z",
+			"timezone" : "(GMT-08:00) America/Los_Angeles",
+			"utc_offset" : -28800,
+			"distance": 3000,
+			"commute": 0,
+			"start_latlng": "",
+			"end_latlng": "",
+			"emissions_avoided": 576
+		},
+		...activityData,
+		user_id: user.id
+	});
+};
+
+const generateUserActivities = async (number, user) => {
+	let activities = [];
+	for (let i = number; i > 0; i--) {
+		activities.push(await generateUserActivity(user));
+	}
+	return activities;
+}
+
 module.exports = {
 	generatePlatformId,
 	generateEmail,
 	generateNewUser,
-	getTokenForUser
+	getTokenForUser,
+	generateUserActivity,
+	generateUserActivities
 }
