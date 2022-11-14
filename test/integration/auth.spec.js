@@ -10,8 +10,6 @@ const { createStravaConnectionDetails, getStravaConnectionDetails } = require('.
 const { initializeDatabase } = require('../utils/database');
 const { generateNewUser } = require('../utils/fixture-generator');
 
-// beforeAll(() => initializeDatabase());
-// afterAll(() => clearDatabase());
 beforeEach(() => initializeDatabase().catch(e => console.error(e.stack)));
 beforeEach(() => mockAxios.post.mockClear());
 
@@ -34,7 +32,7 @@ describe('GET /auth/strava', () => {
 			);
 		});
 
-		it('should return JWT containing user object for new user', async () => {
+		it('should have cookie set to token containing user object for new user', async () => {
 			mockAxios.post.mockResolvedValueOnce(oAuthTokenResponse);
 
 			const expectedUser = {
@@ -50,8 +48,13 @@ describe('GET /auth/strava', () => {
 
 			expect(res.statusCode).toBe(200);
 
+			// Check that the cookie is set
+			const cookies = res.headers['set-cookie'];
+			expect(cookies).toEqual(expect.objectContaining(/token=.*/));
+
 			// Check that the decoded token has the data we expect
-			const decodedToken = verifyAccessToken(res.text);
+			const token = cookies[0].match(/token=(.*); Domain/)[1]
+			const decodedToken = verifyAccessToken(token);
 			expect(decodedToken).toEqual(expect.objectContaining(expectedUser));
 
 			// Check that the user exists
@@ -63,7 +66,7 @@ describe('GET /auth/strava', () => {
 			expect(stravaConn).not.toBeFalsy();
 		});
 
-		it('should return JWT containing user object for updated user', async () => {
+		it('should have cookie set to token containing user object for updated user', async () => {
 			mockAxios.post.mockResolvedValueOnce(oAuthTokenResponse);
 
 			const user = await generateNewUser({
@@ -84,8 +87,13 @@ describe('GET /auth/strava', () => {
 			const res = await request(app)
 				.get(`/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
 
-			// Get the Strava connection
-			const decodedToken = verifyAccessToken(res.text);
+			// Check that the cookie is set
+			const cookies = res.headers['set-cookie'];
+			expect(cookies).toEqual(expect.objectContaining(/token=.*/));
+
+			// Check that the decoded token has the new Strava details
+			const token = cookies[0].match(/token=(.*); Domain/)[1]
+			const decodedToken = verifyAccessToken(token);
 			const newStravaConn = await getStravaConnectionDetails(decodedToken.id);
 			expect(newStravaConn).not.toEqual(oldStravaConn);
 		});
