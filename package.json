@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "NODE_ENV=development node ./bin/www",
+    "start": "NODE_ENV=development node --trace-warnings ./bin/www",
     "test": "NODE_ENV=test jest --detectOpenHandles",
     "test:watch": "NODE_ENV=test jest --watch"
   },

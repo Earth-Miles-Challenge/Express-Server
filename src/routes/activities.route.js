@@ -18,6 +18,8 @@ router.get('/', activitiesController.get);
 
 router.get('/:activityId', activitiesController.activityExists, activitiesController.getOne);
 
+router.get('/fetchLatest', activitiesController.fetchLatest);
+
 // router.put('/:id', authenticateToken, activitiesController.userExists, activitiesController.update);
 
 module.exports = router;

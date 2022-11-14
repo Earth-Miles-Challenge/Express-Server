@@ -1,7 +1,6 @@
 const db = require('./database.service');
 const { logger } = require('./logger.service');
 
-
 const getActivity = async (activityId) => {
 	const result = await db.query(`
 		SELECT * FROM activities

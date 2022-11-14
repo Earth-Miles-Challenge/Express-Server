@@ -2,6 +2,7 @@ const db = require('./database.service');
 const axios = require('axios');
 const { logger } = require('../services/logger.service');
 const { getEnvVariable } = require('../utils/env.utils');
+const { createActivity } = require('./activities.service');
 
 const getStravaConnectionDetails = async (userId) => {
 	const result = await db.query(`SELECT * FROM strava_connection_details WHERE user_id = $1`, [userId]);
@@ -78,19 +79,67 @@ const getClientToken = async (code) => {
 	}
 }
 
-const getAthleteActivities = (req) => {
-	response = axios.get(`https://www.strava.com/api/v3/oauth/token`, {
+const getAthleteActivities = async (accessToken, after = 0) => {
+	const response = await axios.get(
+		`https://www.strava.com/api/v3/athlete/activities?after=${after}&per_page=30`, {
 		client_id: getEnvVariable('STRAVA_CLIENT_ID'),
 		client_secret: getEnvVariable('STRAVA_CLIENT_SECRET'),
-		code: req.body.code,
-		grant_type: 'authorization_code'
-	})
-	.then((response) => {
-		res.json(response);
-	})
-	.catch((err) => {
-		next(err);
+		headers: {
+			Authorization: `Bearer ${accessToken}`
+		}
 	});
+
+	return response;
+}
+
+const createActivityFromStravaActivity = async (userId, activityData) => {
+	const {
+		start_date,
+		start_date_local,
+		timezone,
+		utc_offset,
+		distance,
+		commute,
+		start_latlng,
+		end_latlng
+	} = activityData;
+
+	const data = {
+		user_id: userId,
+		activity_platform: 'strava',
+		activity_platform_activity_id: activityData.id,
+		activity_type: getActivityType(activityData),
+		description: activityData.name,
+		start_date,
+		start_date_local,
+		timezone,
+		utc_offset,
+		distance,
+		commute,
+		start_latlng,
+		end_latlng,
+		co2_avoided_grams: getEmissionsAvoidedForActivity(activityData)
+	}
+	const activity = await createActivity(data);
+	return activity;
+}
+
+const getActivityType = (activity) => {
+	if (activity.type === 'Ride') return 'ride';
+	if (activity.type === 'Run') return 'run';
+}
+
+const getEmissionsAvoidedForActivity = (activity) => {
+	/**
+	 * This is based on the average emissions of medium & small cars.
+	 * @see https://ourworldindata.org/travel-carbon-footprint
+	 */
+	const estimatedEmissionsPerKm = 165;
+
+	/**
+	 * @todo Instead of taking the activity distance, calculate distance of fossil fuel powered alternative
+	 */
+	return distance / 100 * estimatedEmissionsPerKm;
 }
 
 module.exports = {
@@ -99,5 +148,6 @@ module.exports = {
 	updateStravaConnectionDetails,
 	deleteStravaConnectionDetails,
 	getClientToken,
-	getAthleteActivities
+	getAthleteActivities,
+	createActivityFromStravaActivity
 }
