@@ -22,7 +22,7 @@ const generateEmail = () => {
 }
 
 const generateNewUser = async (data) => {
-	return await createUser({
+	const user = await createUser({
 		...{
 			first_name: 'Test',
 			last_name: 'User',
@@ -30,6 +30,8 @@ const generateNewUser = async (data) => {
 		},
 		...data
 	});
+
+	return user;
 }
 
 const getTokenForUser = (user) => {
@@ -40,7 +42,7 @@ const getTokenForUser = (user) => {
 }
 
 const generateUserActivity = async (user, activityData = {}) => {
-	return await createActivity({
+	const activity = await createActivity({
 		...{
 			"activity_platform": "strava",
 			"activity_platform_activity_id": generatePlatformActivityId(),
@@ -59,6 +61,8 @@ const generateUserActivity = async (user, activityData = {}) => {
 		...activityData,
 		user_id: user.id
 	});
+
+	return activity;
 };
 
 const generateUserActivities = async (number, user) => {

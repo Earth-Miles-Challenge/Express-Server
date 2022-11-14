@@ -21,7 +21,7 @@ describe('/users/:id/activities route', () => {
 				});
 				const token = getTokenForUser(user);
 
-				await generateUserActivities(25, user);
+				const activities = await generateUserActivities(25, user);
 
 				const res = await request(app)
 					.get(`/users/${user.id}/activities`)
@@ -29,6 +29,8 @@ describe('/users/:id/activities route', () => {
 
 				expect(res.statusCode).toBe(200);
 				expect(res.body.length).toBe(20);
+				expect(res.body[0]).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(activities[0]))));
+				expect(res.body[19]).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(activities[19]))));
 			});
 
 			it('should return set number of activies when specified', async () => {
@@ -40,7 +42,7 @@ describe('/users/:id/activities route', () => {
 				const token = getTokenForUser(user);
 				const expectedNumber = 10;
 
-				await generateUserActivities(25, user);
+				const activities = await generateUserActivities(25, user);
 
 				const res = await request(app)
 					.get(`/users/${user.id}/activities?number=${expectedNumber}`)
@@ -48,6 +50,8 @@ describe('/users/:id/activities route', () => {
 
 				expect(res.statusCode).toBe(200);
 				expect(res.body.length).toBe(expectedNumber);
+				expect(res.body[0]).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(activities[0]))));
+				expect(res.body[9]).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(activities[9]))));
 			});
 		});
 

@@ -80,7 +80,7 @@ describe('Users service', () => {
 
 				const user = await getUser(1);
 
-				expect(user).toEqual(expect.objectContaining(expectedUser));
+				expect(user).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(expectedUser))));
 			});
 		});
 

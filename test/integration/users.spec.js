@@ -54,7 +54,7 @@ describe('/users route', () => {
 					.get(`/users/${newUser.id}`);
 
 				expect(res.statusCode).toBe(200);
-				expect(res.body).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(newUser))));
+				expect(res.body).toEqual(expect.objectContaining(newUser));
 			});
 		});
 
