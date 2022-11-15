@@ -41,6 +41,10 @@ app.all('*', (req, res, next) => {
 	next();
 });
 
+app.get('/mytest', (req, res, next) => {
+	next();
+});
+
 // Routers
 app.use('/users/:id/activities', activitiesRouter);
 app.use('/users', usersRouter);

@@ -56,6 +56,8 @@ async function userExists(req, res, next) {
 
 	if (user) {
 		req.user = user;
+		logger.info('userExists')
+		logger.info(req.user);
 		next();
 	} else {
 		const err = new Error('User does not exist.');

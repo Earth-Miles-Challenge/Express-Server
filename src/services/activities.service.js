@@ -16,6 +16,8 @@ const getActivities = async (userId, searchParams = {}) => {
 		page = 1
 	} = searchParams;
 
+	logger.info('getActivities');
+
 	const pageOffset = page > 0 ? (page-1) * number : 0;
 	const result = await db.query(`
 		SELECT * FROM activities
@@ -24,7 +26,7 @@ const getActivities = async (userId, searchParams = {}) => {
 		OFFSET $3`,
 		[userId, number, pageOffset]
 	);
-
+	logger.debug(`Number of activities: ${result.rows.length}`);
 	return result.rows;
 }
 
@@ -80,6 +82,8 @@ const createActivity = async (data) => {
 		end_latlng,
 		co2_avoided_grams
 	];
+	logger.info(`Values: ${values}`);
+
 	const result = await db.query(sql, values);
 	return result.rows[0];
 }

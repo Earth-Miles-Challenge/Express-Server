@@ -81,6 +81,11 @@ async function authenticateStrava(req, res, next) {
 	}
 }
 
+async function refreshToken(req, res, next) {
+	
+}
+
 module.exports = {
-	authenticateStrava
+	authenticateStrava,
+	refreshToken
 };

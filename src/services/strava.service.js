@@ -79,17 +79,48 @@ const getClientToken = async (code) => {
 	}
 }
 
-const getAthleteActivities = async (accessToken, after = 0) => {
-	const response = await axios.get(
-		`https://www.strava.com/api/v3/athlete/activities?after=${after}&per_page=30`, {
-		client_id: getEnvVariable('STRAVA_CLIENT_ID'),
-		client_secret: getEnvVariable('STRAVA_CLIENT_SECRET'),
-		headers: {
-			Authorization: `Bearer ${accessToken}`
-		}
-	});
+const getUserAccessToken = async (userId) => {
+	const stravaConn = await getStravaConnectionDetails(userId);
+	if (stravaConn.expires_at > Date.now()) return stravaConn.access_token;
+	try {
+		const response = await axios.post(
+			`https://www.strava.com/api/v3/oauth/token`, {
+			client_id: getEnvVariable('STRAVA_CLIENT_ID'),
+			client_secret: getEnvVariable('STRAVA_CLIENT_SECRET'),
+			grant_type: 'refresh_token',
+			refresh_token: stravaConn.refresh_token
+		});
+		const { access_token, refresh_token, expires_at, expires_in } = response.data;
 
-	return response;
+		// Update Strava connection details — returns a promise
+		updateStravaConnectionDetails(userId, { access_token, refresh_token, expires_at, expires_in });
+
+		return access_token;
+	} catch (err) {
+		logger.debug(`There was an error while refreshing an access token from Strava:`, err.message);
+		throw err;
+	}
+}
+
+const getAthleteActivities = async (userId, after = 0) => {
+	try {
+		const accessToken = await getUserAccessToken(userId);
+		const response = await axios.get(
+			`https://www.strava.com/api/v3/athlete/activities?after=${after}&per_page=30`, {
+			headers: { Authorization: `Bearer ${accessToken}` }
+		});
+
+		return await response.data;
+
+		// return await activities.map(async(activityData) => {
+		// 	logger.info(`getAthleteActivities: ${activityData} - ${userId}`);
+		// 	const activity = await createActivityFromStravaActivity(userId, activityData);
+		// 	return activity;
+		// });
+	} catch (err) {
+		logger.debug(`There was an error fetching athlete activities:`, err.message);
+		throw err;
+	}
 }
 
 const createActivityFromStravaActivity = async (userId, activityData) => {
@@ -120,7 +151,9 @@ const createActivityFromStravaActivity = async (userId, activityData) => {
 		end_latlng,
 		co2_avoided_grams: getEmissionsAvoidedForActivity(activityData)
 	}
+
 	const activity = await createActivity(data);
+
 	return activity;
 }
 
@@ -130,6 +163,8 @@ const getActivityType = (activity) => {
 }
 
 const getEmissionsAvoidedForActivity = (activity) => {
+	if (!activity.commute) return 0;
+
 	/**
 	 * This is based on the average emissions of medium & small cars.
 	 * @see https://ourworldindata.org/travel-carbon-footprint
@@ -139,7 +174,7 @@ const getEmissionsAvoidedForActivity = (activity) => {
 	/**
 	 * @todo Instead of taking the activity distance, calculate distance of fossil fuel powered alternative
 	 */
-	return distance / 100 * estimatedEmissionsPerKm;
+	return Math.round(activity.distance / 1000 * estimatedEmissionsPerKm);
 }
 
 module.exports = {

@@ -16,10 +16,8 @@ router.all('*', authenticateToken, userHasAuthorization, userExists);
 
 router.get('/', activitiesController.get);
 
-router.get('/:activityId', activitiesController.activityExists, activitiesController.getOne);
-
 router.get('/fetchLatest', activitiesController.fetchLatest);
 
-// router.put('/:id', authenticateToken, activitiesController.userExists, activitiesController.update);
+router.get('/:activityId', activitiesController.activityExists, activitiesController.getOne);
 
 module.exports = router;
