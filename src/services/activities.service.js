@@ -22,6 +22,7 @@ const getActivities = async (userId, searchParams = {}) => {
 	const result = await db.query(`
 		SELECT * FROM activities
 		WHERE user_id = $1
+		ORDER BY start_date DESC
 		LIMIT $2
 		OFFSET $3`,
 		[userId, number, pageOffset]

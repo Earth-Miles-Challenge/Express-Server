@@ -67,6 +67,7 @@ async function authenticateStrava(req, res, next) {
 				secure: false,
 				httpOnly: false
 			});
+
 			res.json({
 				success: true,
 				data: {}
@@ -82,7 +83,7 @@ async function authenticateStrava(req, res, next) {
 }
 
 async function refreshToken(req, res, next) {
-	
+
 }
 
 module.exports = {
