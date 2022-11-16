@@ -1,7 +1,8 @@
 const { logger } = require('../services/logger.service');
 const {
 	getActivity,
-	getActivities
+	getActivities,
+	getMostRecentActivity
 } = require('../services/activities.service');
 
 const stravaService = require('../services/strava.service');
@@ -27,24 +28,16 @@ async function getOne(req, res, next) {
 async function fetchLatest(req, res, next) {
 	logger.info(`fetchLatest`);
 	try {
-		const mostRecent = await getActivities(req.user.id, {number: 1})
-		const after = mostRecent.length === 1 ? mostRecent[0].start_date : 0;
+		const mostRecent = await getMostRecentActivity(req.user.id);
+		const after = mostRecent ? (new Date(mostRecent.start_date_local).getTime() / 1000) + 1 : 0;
+		if (0 === after) res.send('not working');
 		logger.info(`Fetch after: ${after}`);
 	 	const stravaActivities = await stravaService.getAthleteActivities(req.user.id, after);
-		logger.info(`Strava activities: ${stravaActivities}`);
-		// const activities = [];
-		// for (let i = 0; i < stravaActivities.length; i++) {
-		// 	let local = await stravaService.createActivityFromStravaActivity(stravaActivities[i], req.user.id);
-		// 	activities.push(local);
-		// }
-		// stravaActivities.forEach(async activity => {
-		// 	let local = await stravaService.createActivityFromStravaActivity(activity, req.user.id);
-		// 	activities.push(local);
-		// })
+
 		const activities = await Promise.all(stravaActivities.map(async (activity) => {
 			return await stravaService.createActivityFromStravaActivity(req.user.id, activity);
 		}));
-		logger.info(`Activities: ${activities}`);
+
 		res.json(activities);
 	} catch (err) {
 		// err.status = getErrorStatus(err);

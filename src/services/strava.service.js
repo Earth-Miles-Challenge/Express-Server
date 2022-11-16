@@ -135,11 +135,16 @@ const createActivityFromStravaActivity = async (userId, activityData) => {
 		end_latlng
 	} = activityData;
 
+	const type = getActivityType(activityData);
+
+	// Skip unsupported activity types
+	if (!type) return null;
+
 	const data = {
 		user_id: userId,
 		activity_platform: 'strava',
 		activity_platform_activity_id: activityData.id,
-		activity_type: getActivityType(activityData),
+		activity_type: type,
 		description: activityData.name,
 		start_date,
 		start_date_local,
@@ -158,8 +163,15 @@ const createActivityFromStravaActivity = async (userId, activityData) => {
 }
 
 const getActivityType = (activity) => {
-	if (activity.type === 'Ride') return 'ride';
-	if (activity.type === 'Run') return 'run';
+	switch (activity.type) {
+		case 'Ride':
+		case 'Run':
+		case 'Walk':
+			return activity.type.toLowerCase();
+
+		default:
+			return false;
+	}
 }
 
 const getEmissionsAvoidedForActivity = (activity) => {

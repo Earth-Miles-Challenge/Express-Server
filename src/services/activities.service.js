@@ -10,6 +10,12 @@ const getActivity = async (activityId) => {
 	return result.rows[0];
 }
 
+const getMostRecentActivity = async(userId) => {
+	const activities = await getActivities(userId, {number: 1});
+	logger.info(activities[0]);
+	return activities[0];
+}
+
 const getActivities = async (userId, searchParams = {}) => {
 	const {
 		number = 20,
@@ -83,14 +89,20 @@ const createActivity = async (data) => {
 		end_latlng,
 		co2_avoided_grams
 	];
-	logger.info(`Values: ${values}`);
+	// logger.info(`Values: ${values}`);
 
 	const result = await db.query(sql, values);
 	return result.rows[0];
 }
 
+const getSupportedActivityTypes = () => ['run', 'ride', 'walk'];
+const getSupportedPlatforms = () => ['strava']
+
 module.exports = {
 	getActivity,
+	getMostRecentActivity,
 	getActivities,
-	createActivity
+	createActivity,
+	getSupportedActivityTypes,
+	getSupportedPlatforms
 }
