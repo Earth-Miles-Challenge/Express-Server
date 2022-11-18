@@ -18,6 +18,8 @@ const sessionConfig = require('./session.config');
 const usersRouter = require('../routes/users.route');
 const activitiesRouter = require('../routes/activities.route');
 const authRouter = require('../routes/auth.route');
+const userImpactRouter = require('../routes/user-impact.route');
+const globalImpactRouter = require('../routes/global-impact.route');
 
 // Middleware
 app.use(morgan(morganConfig.format, morganConfig.options));
@@ -41,14 +43,10 @@ app.all('*', (req, res, next) => {
 	next();
 });
 
-app.get('/mytest', (req, res, next) => {
-	next();
-});
-
 // Routers
-app.use('/users/:id/activities', activitiesRouter);
 app.use('/users', usersRouter);
 app.use('/auth', authRouter);
+app.use('/impact', globalImpactRouter);
 
 // 404 handler
 app.use(function(req, res, next) {

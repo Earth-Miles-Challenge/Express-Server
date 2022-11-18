@@ -41,7 +41,7 @@ async function create(req, res, next) {
 
 async function remove(req, res, next) {
 	try {
-		await deleteUser(req.params.id);
+		await deleteUser(req.params.userId);
 		res.status(204).send();
 	} catch (err) {
 		err.status = getErrorStatus(err);
@@ -51,8 +51,8 @@ async function remove(req, res, next) {
 }
 
 async function userExists(req, res, next) {
-	const id = parseInt(req.params.id);
-	const user = await getUser(id);
+	const userId = parseInt(req.params.userId);
+	const user = await getUser(userId);
 
 	if (user) {
 		req.user = user;
