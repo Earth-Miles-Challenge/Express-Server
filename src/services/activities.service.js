@@ -18,11 +18,9 @@ const getMostRecentActivity = async(userId) => {
 
 const getActivities = async (userId, searchParams = {}) => {
 	const {
-		number = 20,
+		number = 30,
 		page = 1
 	} = searchParams;
-
-	logger.info('getActivities');
 
 	const pageOffset = page > 0 ? (page-1) * number : 0;
 	const result = await db.query(`
@@ -33,7 +31,7 @@ const getActivities = async (userId, searchParams = {}) => {
 		OFFSET $3`,
 		[userId, number, pageOffset]
 	);
-	logger.debug(`Number of activities: ${result.rows.length}`);
+
 	return result.rows;
 }
 

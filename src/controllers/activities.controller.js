@@ -26,16 +26,13 @@ async function getOne(req, res, next) {
 }
 
 async function fetchLatest(req, res, next) {
-	logger.info(`fetchLatest`);
 	try {
 		const mostRecent = await getMostRecentActivity(req.user.id);
-		const after = mostRecent ? (new Date(mostRecent.start_date_local).getTime() / 1000) + 1 : 0;
-		if (0 === after) res.send('not working');
-		logger.info(`Fetch after: ${after}`);
-	 	const stravaActivities = await stravaService.getAthleteActivities(req.user.id, after);
+		const fromTime = mostRecent ? (new Date(mostRecent.start_date_local).getTime() / 1000) + 1 : 0;
+	 	const stravaActivities = await stravaService.getAthleteActivities(req.user.id, fromTime);
 
-		const activities = await Promise.all(stravaActivities.map(async (activity) => {
-			return await stravaService.createActivityFromStravaActivity(req.user.id, activity);
+		const activities = await Promise.all(stravaActivities.map((activity) => {
+			return stravaService.createActivityFromStravaActivity(req.user.id, activity);
 		}));
 
 		res.json(activities);

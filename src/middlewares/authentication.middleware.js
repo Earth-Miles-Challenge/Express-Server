@@ -22,12 +22,10 @@ function userHasAuthorization(req, res, next) {
 	if (!req.authenticatedUser) return res.sendStatus(403);
 
 	const userId = parseInt(req.params.id);
-	logger.info('userHasAuthorization: ' + userId);
 
 	if (!userId) return res.sendStatus(401);
 	if (userId !== req.authenticatedUser.id) return res.sendStatus(403);
-	logger.info('userHasAuthorization: passed');
-	
+
 	next();
 }
 

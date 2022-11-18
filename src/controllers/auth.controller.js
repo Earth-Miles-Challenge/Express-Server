@@ -7,6 +7,7 @@ const {
 	createStravaConnectionDetails
 } = require('../services/strava.service');
 const { generateAccessToken } = require('../services/authentication.service');
+const { onboardUser } = require('../services/onboarding.service');
 
 /**
  * Strava authentication.
@@ -21,8 +22,6 @@ async function authenticateStrava(req, res, next) {
 		err.status = 400;
 		next(err);
 	}
-
-	logger.debug(req.query);
 
 	try {
 		const response = await getClientToken(req.query.code);
@@ -56,6 +55,11 @@ async function authenticateStrava(req, res, next) {
 			!hasStravaConn
 				? await createStravaConnectionDetails(stravaConnData)
 				: await updateStravaConnectionDetails(user.id, stravaConnData);
+
+			// Start onboarding the user
+			// NOTE: This runs asynchronously and we don't need to await the
+			// return.
+			onboardUser(user.id);
 
 			// Generate the token
 			const tokenKeys = [ 'id', 'first_name', 'last_name', 'profile_photo', 'activity_platform' ];
