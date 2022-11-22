@@ -2,8 +2,6 @@ const { createUser, getUser, getUserByPlatformId, getUsers, updateUser, deleteUs
 const { initializeDatabase } = require('../utils/database');
 const { generatePlatformId, generateEmail, generateNewUser } = require('../utils/fixture-generator');
 
-// beforeAll(() => initializeDatabase());
-// afterAll(() => clearDatabase());
 beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
 
 describe('Users service', () => {
