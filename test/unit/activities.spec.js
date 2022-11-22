@@ -43,7 +43,6 @@ describe('Activities service', () => {
 			it('should be able to get local date & time', async () => {
 				const activityData = {
 					"start_date": "2017-09-06T22:48:15Z",
-					"start_date_local": "2017-09-07T08:18:15Z",
 					"timezone": "Australia/Darwin",
 				};
 				const user = await generateNewUser();
@@ -84,7 +83,6 @@ describe('Activities service', () => {
 				await generateUserActivity(user, {
 					"description": "School to home",
 					"start_date": "2017-09-06T22:48:15Z",
-					"start_date_local": "2017-09-07T08:18:15Z",
 				});
 
 				const activity = await getMostRecentActivity(user.id);

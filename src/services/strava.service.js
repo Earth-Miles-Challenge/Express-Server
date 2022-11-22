@@ -126,7 +126,6 @@ const getAthleteActivities = async (userId, after = 0, perPage = 30) => {
 const createActivityFromStravaActivity = async (userId, activityData) => {
 	const {
 		start_date,
-		start_date_local,
 		timezone,
 		utc_offset,
 		distance,
@@ -147,8 +146,7 @@ const createActivityFromStravaActivity = async (userId, activityData) => {
 		activity_type: type,
 		description: activityData.name,
 		start_date,
-		start_date_local,
-		timezone,
+		timezone: parseTimezone(activityData.timezone),
 		utc_offset,
 		distance,
 		commute,
@@ -188,6 +186,13 @@ const getEmissionsAvoidedForActivity = (activity) => {
 	 */
 	return Math.round(activity.distance / 1000 * estimatedEmissionsPerKm);
 }
+
+/**
+ * Parse the timezone passed by Strava to return only the region.
+ * @param {string} timezone
+ * @returns string
+ */
+const parseTimezone = timezone => timezone.match(/.* (.*)/)[1];
 
 module.exports = {
 	getStravaConnectionDetails,

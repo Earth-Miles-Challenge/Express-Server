@@ -44,7 +44,7 @@ const onboardStravaUser = async (user) => {
 
 		// Process next batch of activities, starting with time of most recently processed activity.
 		return _processActivities(
-			Math.round((new Date(stravaActivities[perPage-1].start_date_local).getTime() / 1000)),
+			Math.round((new Date(stravaActivities[perPage-1].start_date).getTime() / 1000)),
 			allActivitiesProcessed,
 			allActivities
 		);

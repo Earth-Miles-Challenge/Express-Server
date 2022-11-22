@@ -28,7 +28,7 @@ async function getOne(req, res, next) {
 async function fetchLatest(req, res, next) {
 	try {
 		const mostRecent = await getMostRecentActivity(req.user.id);
-		const fromTime = mostRecent ? (new Date(mostRecent.start_date_local).getTime() / 1000) + 1 : 0;
+		const fromTime = mostRecent ? (new Date(mostRecent.start_date).getTime() / 1000) + 1 : 0;
 	 	const stravaActivities = await stravaService.getAthleteActivities(req.user.id, fromTime);
 
 		const activities = await Promise.all(stravaActivities.map((activity) => {

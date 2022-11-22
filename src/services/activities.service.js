@@ -11,7 +11,6 @@ const getActivity = async (activityId) => {
 			activity_type,
 			description,
 			start_date,
-			start_date_local,
 			timezone,
 			utc_offset,
 			distance,
@@ -49,7 +48,6 @@ const getActivities = async (userId, searchParams = {}) => {
 			activity_type,
 			description,
 			start_date,
-			start_date_local,
 			timezone,
 			utc_offset,
 			distance,
@@ -76,7 +74,6 @@ const createActivity = async (data) => {
 		activity_type,
 		description,
 		start_date,
-		start_date_local,
 		timezone,
 		utc_offset,
 		distance,
@@ -93,7 +90,6 @@ const createActivity = async (data) => {
 		activity_type,
 		description,
 		start_date,
-		start_date_local,
 		timezone,
 		utc_offset,
 		distance,
@@ -102,7 +98,7 @@ const createActivity = async (data) => {
 		end_latlng,
 		co2_avoided_grams
 	)
-	VALUES($1, $2, $3, $4, $5, $6, (select $7 at time zone '$8'), $8, $9, $10, $11, $12, $13, $14)
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 	RETURNING *`;
 	const values = [
 		user_id,
@@ -111,7 +107,6 @@ const createActivity = async (data) => {
 		activity_type,
 		description,
 		start_date,
-		start_date_local,
 		timezone,
 		utc_offset,
 		distance,
