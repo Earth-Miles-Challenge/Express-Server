@@ -56,7 +56,7 @@ const generateUserActivity = async (user, activityData = {}) => {
 			"commute": 0,
 			"start_latlng": "",
 			"end_latlng": "",
-			"emissions_avoided": 576
+			"co2_avoided_grams": 576
 		},
 		...activityData,
 		user_id: user.id
@@ -65,10 +65,10 @@ const generateUserActivity = async (user, activityData = {}) => {
 	return activity;
 };
 
-const generateUserActivities = async (number, user) => {
+const generateUserActivities = async (number, user, activityData = {}) => {
 	let activities = [];
 	for (let i = number; i > 0; i--) {
-		activities.push(await generateUserActivity(user));
+		activities.push(await generateUserActivity(user, activityData));
 	}
 	return activities;
 }
