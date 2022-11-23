@@ -65,56 +65,89 @@ const getActivities = async (userId, searchParams = {}) => {
 }
 
 const createActivity = async (data) => {
-	const {
-		user_id,
-		activity_platform,
-		activity_platform_activity_id,
-		activity_type,
-		description,
-		start_date,
-		timezone,
-		distance,
-		commute,
-		start_latlng,
-		end_latlng,
-		co2_avoided_grams
-	} = data;
+	if (validate(data)) {
+		const sql = `INSERT INTO public.activities(
+			user_id,
+			activity_platform,
+			activity_platform_activity_id,
+			activity_type,
+			description,
+			start_date,
+			timezone,
+			distance,
+			commute,
+			start_latlng,
+			end_latlng,
+			co2_avoided_grams
+		)
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		RETURNING *`;
+		const values = [
+			data.user_id,
+			data.activity_platform,
+			data.activity_platform_activity_id,
+			data.activity_type,
+			data.description,
+			data.start_date,
+			data.timezone,
+			data.distance,
+			data.commute,
+			data.start_latlng,
+			data.end_latlng,
+			data.co2_avoided_grams
+		];
 
-	const sql = `INSERT INTO public.activities(
-		user_id,
-		activity_platform,
-		activity_platform_activity_id,
-		activity_type,
-		description,
-		start_date,
-		timezone,
-		distance,
-		commute,
-		start_latlng,
-		end_latlng,
-		co2_avoided_grams
-	)
-	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-	RETURNING *`;
-	const values = [
-		user_id,
-		activity_platform,
-		activity_platform_activity_id,
-		activity_type,
-		description,
-		start_date,
-		timezone,
-		distance,
-		commute,
-		start_latlng,
-		end_latlng,
-		co2_avoided_grams
+		const result = await db.query(sql, values);
+		return result.rows[0];
+	}
+}
+
+/**
+ * Validate activity data before inserting/updating.
+ * @param {object} data
+ * @returns Error|true
+ */
+const validate = (data) => {
+	const requiredFields = [
+		'user_id',
+		'activity_platform',
+		'activity_platform_activity_id',
+		'activity_type',
+		'start_date',
+		'timezone',
+		'distance'
 	];
 
-	// logger.info(`Values: ${values}`);
+	const requiredFieldErrors = requiredFields.reduce((errors, field) => {
+		if (!data.hasOwnProperty(field) || !data[field]) {
+			return [
+				...errors,
+				field
+			];
+		} else {
+			return errors;
+		}
+	}, []);
 
-	const result = await db.query(sql, values);
-	return result.rows[0];
+	if (requiredFieldErrors.length) {
+		const err = new Error(`Missing required fields: ${requiredFieldErrors.join(', ')}`);
+		err.name = 'missingRequiredFields';
+		throw err;
+	}
+
+	if (false === getSupportedActivityTypes().includes(data.activity_type)) {
+		const err = new Error(`Invalid activity type: ${data.activity_type}`);
+		err.name = 'invalidActivityType';
+		throw err;
+	}
+
+	if (!getSupportedPlatforms().includes(data.activity_platform)) {
+		const err = new Error(`Invalid activity platform: ${data.activity_platform}`);
+		err.name = 'invalidActivityPlatform';
+		throw err;
+	}
+
+	return true;
 }
 
 const getSupportedActivityTypes = () => ['run', 'ride', 'walk'];

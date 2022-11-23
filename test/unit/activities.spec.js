@@ -7,6 +7,7 @@ const {
 	getSupportedPlatforms
  } = require('../../src/services/activities.service');
 const { initializeDatabase } = require('../utils/database');
+const { getComparisonActivityData } = require('../utils/activities');
 const { generateNewUser, generateUserActivity, generateUserActivities } = require('../utils/fixture-generator');
 
 beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
@@ -87,10 +88,7 @@ describe('Activities service', () => {
 
 				const activity = await getMostRecentActivity(user.id);
 
-				expect(JSON.parse(JSON.stringify(activity))).toEqual(expect.objectContaining({
-					activity_type: secondActivityData.activity_type,
-					description: secondActivityData.description
-				}));
+				expect(activity).toEqual(expect.objectContaining(getComparisonActivityData(secondActivityData)));
 			});
 		});
 
@@ -104,50 +102,176 @@ describe('Activities service', () => {
 	});
 
 	describe('getActivities', () => {
+		describe('when fetching with default arguments', () => {
+			it('should return 30 records starting with most recent', async () => {
+				const user = await generateNewUser();
+				const firstActivity = { "activity_type": "ride", "description": "First Ride", "start_date": "2022-02-22 09:00:00" };
+				const defaultActivity = { "activity_type": "ride", "description": "Evening Ride", "start_date": "2022-02-22 10:00:00" };
+				const lastActivity = { "activity_type": "ride", "description": "Last Ride", "start_date": "2022-02-22 11:00:00" };
 
+				await generateUserActivity(user, firstActivity);
+				await generateUserActivities(30, user, defaultActivity );
+				await generateUserActivity(user, lastActivity);
+
+				const activities = await getActivities(user.id);
+
+				expect(activities.length).toBe(30);
+				expect(activities[0]).toEqual(expect.objectContaining(getComparisonActivityData(lastActivity)));
+				expect(activities[29]).toEqual(expect.objectContaining(getComparisonActivityData(defaultActivity)));
+			});
+		});
+
+		describe('when setting number of records to return', () => {
+			it('should return given number of records starting with most recent', async () => {
+				const user = await generateNewUser();
+				const firstActivity = { "activity_type": "ride", "description": "First Ride", "start_date": "2022-02-22 09:00:00" };
+				const defaultActivity = { "activity_type": "ride", "description": "Evening Ride", "start_date": "2022-02-22 10:00:00" };
+				const lastActivity = { "activity_type": "ride", "description": "Last Ride", "start_date": "2022-02-22 11:00:00" };
+
+				await generateUserActivity(user, firstActivity);
+				await generateUserActivities(10, user, defaultActivity );
+				await generateUserActivity(user, lastActivity);
+
+				const activities = await getActivities(user.id, {number: 10});
+
+				expect(activities.length).toBe(10);
+				expect(activities[0]).toEqual(expect.objectContaining(getComparisonActivityData(lastActivity)));
+				expect(activities[9]).toEqual(expect.objectContaining(getComparisonActivityData(defaultActivity)));
+			});
+		});
+
+		describe('when setting number & page of records to return', () => {
+			it('should return given number of records starting with most recent', async () => {
+				const user = await generateNewUser();
+				const firstActivity = { "activity_type": "ride", "description": "First Ride", "start_date": "2022-02-22 09:00:00" };
+				const defaultActivity = { "activity_type": "ride", "description": "Evening Ride", "start_date": "2022-02-22 10:00:00" };
+				const lastActivity = { "activity_type": "ride", "description": "Last Ride", "start_date": "2022-02-22 11:00:00" };
+
+				await generateUserActivity(user, firstActivity);
+				await generateUserActivities(10, user, defaultActivity );
+				await generateUserActivity(user, lastActivity);
+
+				const activities = await getActivities(user.id, {number: 6, page: 2});
+
+				expect(activities.length).toBe(6);
+				expect(activities[0]).toEqual(expect.objectContaining(getComparisonActivityData(defaultActivity)));
+				expect(activities[5]).toEqual(expect.objectContaining(getComparisonActivityData(firstActivity)));
+			});
+		});
+
+		describe('when there are no activities for user', () => {
+			it('should return empty array', async () => {
+				const user = await generateNewUser();
+				const activities = await getActivities(user.id);
+
+				expect(activities).toEqual([]);
+			});
+		});
 	});
 
 	describe('createActivity', () => {
-
-	});
-
-	describe('getSupportedActivityTypes', () => {
-
-	});
-
-	describe('getSupportedPlatforms', () => {
-
-	});
-
-
-	xdescribe('getEmissionsAvoidedByUser', () => {
-		describe('when user has avoided emissions', () => {
-			it('should return total grams avoided', async () => {
+		describe('when all required fields are provided', () => {
+			it('should return object matching inserted data', async () => {
 				const user = await generateNewUser();
-				const activities = 3;
-				const emissionsPerActivity = 100;
+				const activityData = {
+					user_id: user.id,
+					activity_type: 'ride',
+					activity_platform: 'strava',
+					activity_platform_activity_id: '123456789',
+					description: 'Ride to the shops',
+					start_date: '2022-11-23 12:14:00',
+					timezone: 'Australia/Darwin',
+					distance: 1723,
+					commute: true,
+					start_latlng: '',
+					end_latlng: '',
+					co2_avoided_grams: 331
+				};
+				const activity = await createActivity(activityData);
 
-				await generateUserActivities(activities, user, {co2_avoided_grams: emissionsPerActivity});
-				const emissionsSaved = await getEmissionsAvoidedByUser(user.id);
-				expect(emissionsSaved).toEqual(activities * emissionsPerActivity)
+				expect(activity).toEqual(expect.objectContaining(getComparisonActivityData(activityData)));
 			});
 		});
 
-		describe('when user has not avoided any emissions yet', () => {
-			it('should return 0', async () => {
+		describe('when any required field is missing', () => {
+			it.each([
+				'user_id',
+				'activity_platform',
+				'activity_platform_activity_id',
+				'activity_type',
+				'start_date',
+				'timezone',
+				'distance'
+			])('should throw an error', async (field) => {
 				const user = await generateNewUser();
-				await generateUserActivity(user, {co2_avoided_grams: 0});
-				const emissionsSaved = await getEmissionsAvoidedByUser(user.id);
-				expect(emissionsSaved).toEqual(0);
+				const activityData = {
+					user_id: user.id,
+					activity_type: 'ride',
+					activity_platform: 'strava',
+					activity_platform_activity_id: '123456789',
+					description: 'Ride to the shops',
+					start_date: '2022-11-23 12:14:00',
+					timezone: 'Australia/Darwin',
+					distance: 1723,
+					commute: true,
+					start_latlng: '',
+					end_latlng: '',
+					co2_avoided_grams: 331
+				};
+
+				const baseArray = Object.entries(activityData);
+				const incompleteData = baseArray.filter((val, index) => baseArray[index][0] !== field);
+
+				await expect(createActivity(Object.fromEntries(incompleteData))).rejects.toThrow(`Missing required fields: ${field}`);
 			});
 		});
 
-		describe('when no activities found for user', () => {
-			it('should return 0', async () => {
+		describe('when invalid activity type is passed', () => {
+			it('should throw an error', async () => {
 				const user = await generateNewUser();
-				const emissionsSaved = await getEmissionsAvoidedByUser(user.id);
-				expect(emissionsSaved).toEqual(0);
+				const activityData = {
+					user_id: user.id,
+					activity_type: 'pogostick',
+					activity_platform: 'strava',
+					activity_platform_activity_id: '123456789',
+					description: 'Ride to the shops',
+					start_date: '2022-11-23 12:14:00',
+					timezone: 'Australia/Darwin',
+					distance: 1723,
+					commute: true,
+					start_latlng: '',
+					end_latlng: '',
+					co2_avoided_grams: 331
+				};
+
+				await expect(createActivity(activityData)).rejects.toThrow(`Invalid activity type: pogostick`);
 			});
 		});
+
+		describe('when invalid activity platform is set', () => {
+			it('should throw an error', async () => {
+				const user = await generateNewUser();
+				const activityData = {
+					user_id: user.id,
+					activity_type: 'run',
+					activity_platform: 'myCustomPlatform',
+					activity_platform_activity_id: '123456789',
+					description: 'Ride to the shops',
+					start_date: '2022-11-23 12:14:00',
+					timezone: 'Australia/Darwin',
+					distance: 1723,
+					commute: true,
+					start_latlng: '',
+					end_latlng: '',
+					co2_avoided_grams: 331
+				};
+
+				await expect(createActivity(activityData)).rejects.toThrow(`Invalid activity platform: myCustomPlatform`);
+			});
+		});
+	});
+
+	describe('updateActivity', () => {
+
 	});
 });
