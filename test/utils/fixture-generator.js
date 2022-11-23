@@ -50,7 +50,6 @@ const generateUserActivity = async (user, activityData = {}) => {
 			"description": "Evening Run",
 			"start_date" : "2018-02-20T18:02:13Z",
 			"timezone" : "America/Los_Angeles",
-			"utc_offset" : -28800,
 			"distance": 3000,
 			"commute": 0,
 			"start_latlng": "",

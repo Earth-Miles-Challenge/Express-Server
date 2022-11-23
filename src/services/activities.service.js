@@ -12,7 +12,6 @@ const getActivity = async (activityId) => {
 			description,
 			start_date,
 			timezone,
-			utc_offset,
 			distance,
 			commute,
 			start_latlng,
@@ -49,7 +48,6 @@ const getActivities = async (userId, searchParams = {}) => {
 			description,
 			start_date,
 			timezone,
-			utc_offset,
 			distance,
 			commute,
 			start_latlng,
@@ -75,7 +73,6 @@ const createActivity = async (data) => {
 		description,
 		start_date,
 		timezone,
-		utc_offset,
 		distance,
 		commute,
 		start_latlng,
@@ -91,7 +88,6 @@ const createActivity = async (data) => {
 		description,
 		start_date,
 		timezone,
-		utc_offset,
 		distance,
 		commute,
 		start_latlng,
@@ -108,7 +104,6 @@ const createActivity = async (data) => {
 		description,
 		start_date,
 		timezone,
-		utc_offset,
 		distance,
 		commute,
 		start_latlng,
@@ -116,7 +111,7 @@ const createActivity = async (data) => {
 		co2_avoided_grams
 	];
 
-	logger.info(`Values: ${values}`);
+	// logger.info(`Values: ${values}`);
 
 	const result = await db.query(sql, values);
 	return result.rows[0];

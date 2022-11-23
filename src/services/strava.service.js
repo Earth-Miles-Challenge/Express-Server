@@ -126,8 +126,6 @@ const getAthleteActivities = async (userId, after = 0, perPage = 30) => {
 const createActivityFromStravaActivity = async (userId, activityData) => {
 	const {
 		start_date,
-		timezone,
-		utc_offset,
 		distance,
 		commute,
 		start_latlng,
@@ -147,7 +145,6 @@ const createActivityFromStravaActivity = async (userId, activityData) => {
 		description: activityData.name,
 		start_date,
 		timezone: parseTimezone(activityData.timezone),
-		utc_offset,
 		distance,
 		commute,
 		start_latlng,

@@ -39,7 +39,6 @@ CREATE TABLE IF NOT EXISTS "activities" (
   "description" varchar,
   "start_date" timestamptz,
   "timezone" varchar,
-  "utc_offset" integer,
   "distance" float,
   "commute" boolean,
   "start_latlng" varchar,
