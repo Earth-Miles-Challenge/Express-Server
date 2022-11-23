@@ -102,6 +102,41 @@ const createActivity = async (data) => {
 	}
 }
 
+const updateActivity = async (activityId, newData) => {
+	const existingData = await getActivity(activityId);
+
+	if (!existingData) {
+		const err = new Error(`Activity does not exist.`);
+		err.name = 'invalidActivity';
+		throw err;
+	}
+
+	if (validate(Object.assign(existingData, newData))) {
+		const validColumns = getColumnNames();
+		const [updateSql, n, updateValues] = Object.keys(newData).reduce(([sql, n, values], column) => {
+			if (!validColumns.includes(column)) {
+				const err = new Error(`Unknown column ${column} passed.`);
+				err.name = 'invalidColumn';
+				throw err;
+			}
+
+			return [
+				[...sql, `${column} = ($${n})`],
+				n + 1,
+				[...values, newData[column]]
+			];
+		}, [[], 1, []]);
+
+		const sql = `UPDATE public.activities
+					SET ${updateSql.join(',')}
+					WHERE id = $${n}
+					RETURNING *`;
+
+		const result = await db.query(sql, [...updateValues, activityId]);
+		return result.rows[0];
+	}
+}
+
 /**
  * Validate activity data before inserting/updating.
  * @param {object} data
@@ -150,6 +185,20 @@ const validate = (data) => {
 	return true;
 }
 
+const getColumnNames = () => [
+	'user_id',
+	'activity_platform',
+	'activity_platform_activity_id',
+	'activity_type',
+	'description',
+	'start_date',
+	'timezone',
+	'distance',
+	'commute',
+	'start_latlng',
+	'end_latlng',
+	'co2_avoided_grams'
+];
 const getSupportedActivityTypes = () => ['run', 'ride', 'walk'];
 const getSupportedPlatforms = () => ['strava']
 
@@ -158,6 +207,7 @@ module.exports = {
 	getMostRecentActivity,
 	getActivities,
 	createActivity,
+	updateActivity,
 	getSupportedActivityTypes,
 	getSupportedPlatforms
 }

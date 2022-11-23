@@ -3,8 +3,7 @@ const {
 	getMostRecentActivity,
 	getActivities,
 	createActivity,
-	getSupportedActivityTypes,
-	getSupportedPlatforms
+	updateActivity
  } = require('../../src/services/activities.service');
 const { initializeDatabase } = require('../utils/database');
 const { getComparisonActivityData } = require('../utils/activities');
@@ -272,6 +271,38 @@ describe('Activities service', () => {
 	});
 
 	describe('updateActivity', () => {
+		describe('when updating activity with valid data', () => {
+			it('should return activity with updated data', async () => {
+				const user = await generateNewUser();
+				const { id } = await generateUserActivity(user);
+				const activityData = {
+					commute: true,
+					co2_avoided_grams: 200
+				};
+				const activity = await updateActivity(id, activityData);
 
+				expect(activity).toEqual(expect.objectContaining(activityData));
+			});
+		});
+
+		describe('when updating activity that does not exist', () => {
+			it('should throw an error', async () => {
+				const activityData = {
+					commute: true,
+					co2_avoided_grams: 200
+				};
+
+				await expect(updateActivity(9999, activityData)).rejects.toThrow('Activity does not exist.');
+			});
+		});
+
+		describe('when updating activity with invalid column', () => {
+			it('should throw an error', async () => {
+				const user = await generateNewUser();
+				const { id } = await generateUserActivity(user);
+				const activityData = { is_commute: true };
+				await expect(updateActivity(id, activityData)).rejects.toThrow('Unknown column is_commute passed.');
+			});
+		});
 	});
 });

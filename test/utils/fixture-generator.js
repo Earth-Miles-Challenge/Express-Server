@@ -51,7 +51,7 @@ const generateUserActivity = async (user, activityData = {}) => {
 			"start_date" : "2018-02-20T18:02:13Z",
 			"timezone" : "America/Los_Angeles",
 			"distance": 3000,
-			"commute": 0,
+			"commute": false,
 			"start_latlng": "",
 			"end_latlng": "",
 			"co2_avoided_grams": 576
