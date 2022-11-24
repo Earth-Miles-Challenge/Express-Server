@@ -1,4 +1,4 @@
-const { logger } = require('./logger.service');
+const { logger } = require('../utils/logger.utils');
 const { getUser } = require('./users.service');
 const { getAthleteActivities, createActivityFromStravaActivity } = require('./strava.service');
 
@@ -21,7 +21,7 @@ const onboardStravaUser = async (user) => {
 	 * @param {array} activities Collection of activities created so far.
 	 * @return {object}
 	 */
-	const _processActivities = async (fromTime, activitiesProcessed = 0, activities = []) => {
+	const processActivities = async (fromTime, activitiesProcessed = 0, activities = []) => {
 		logger.info(`Processing Strava activities starting from ${fromTime}`);
 
 		const stravaActivities = await getAthleteActivities(user.id, fromTime, perPage);
@@ -43,14 +43,14 @@ const onboardStravaUser = async (user) => {
 		}
 
 		// Process next batch of activities, starting with time of most recently processed activity.
-		return _processActivities(
+		return processActivities(
 			Math.round((new Date(stravaActivities[perPage-1].start_date).getTime() / 1000)),
 			allActivitiesProcessed,
 			allActivities
 		);
 	}
 
-	const { activities } = await _processActivities(startTime);
+	const { activities } = await processActivities(startTime);
 
 
 	// Get activities from the past 3 months
