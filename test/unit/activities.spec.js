@@ -6,7 +6,7 @@ const {
 	updateActivity
  } = require('../../src/services/activities.service');
 const { initializeDatabase } = require('../utils/database');
-const { getComparisonActivityData } = require('../utils/activities');
+const { getComparisonActivityData } = require('../utils/comparison-data');
 const { generateNewUser, generateUserActivity, generateUserActivities } = require('../utils/fixture-generator');
 
 beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));

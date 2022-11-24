@@ -1,5 +1,6 @@
 const { createUser } = require("../../src/services/users.service");
 const { createActivity } = require("../../src/services/activities.service");
+const { createStravaConnectionDetails } = require('../../src/services/strava.service');
 const { generateAccessToken } = require('../../src/services/authentication.service');
 
 let platformId = 1;
@@ -71,11 +72,26 @@ const generateUserActivities = async (number, user, activityData = {}) => {
 	return activities;
 }
 
+const generateStravaConnectionForUser = async (user, connectionData) => {
+	return await createStravaConnectionDetails({
+		...{
+			expires_at: parseInt(new Date().getTime() / 1000),
+			expires_in: 10000000,
+			refresh_token: 'myRefreshToken',
+			access_token: 'myAccessToken'
+		},
+		...connectionData,
+		strava_id: user.activity_platform_id,
+		user_id: user.id
+	});
+}
+
 module.exports = {
 	generatePlatformId,
 	generateEmail,
 	generateNewUser,
 	getTokenForUser,
 	generateUserActivity,
-	generateUserActivities
+	generateUserActivities,
+	generateStravaConnectionForUser
 }

@@ -1,6 +1,8 @@
 const { logger } = require('../utils/logger.utils');
 const { getUser } = require('./users.service');
-const { getAthleteActivities, createActivityFromStravaActivity } = require('./strava.service');
+const {
+	getAthleteActivities,
+	createActivityFromStravaActivity } = require('./strava.service');
 
 /**
  * Onboard a new Strava user, processing all their activities for the past 3 months.
@@ -29,16 +31,16 @@ const onboardStravaUser = async (user) => {
 			return createActivityFromStravaActivity(user.id, activity);
 		}));
 
-		const allActivities = {...activities, ...batchActivities};
+		const allActivities = [...activities, ...batchActivities];
 		const allActivitiesProcessed = activitiesProcessed + stravaActivities.length;
 
-		logger.info(`Processed ${stravaActivities.length} Strava activities`);
+		logger.info(`Processed ${allActivitiesProcessed} Strava activities (${stravaActivities.length} this batch)`);
 
 		// Last batch, less than 30 activities returned.
 		if (stravaActivities.length < perPage) {
 			return {
-				activities: allActivities,
-				activitiesProcessed: allActivitiesProcessed
+				activitiesProcessed: allActivitiesProcessed,
+				activities: allActivities.filter(activity => activity !== null)
 			};
 		}
 
@@ -50,7 +52,7 @@ const onboardStravaUser = async (user) => {
 		);
 	}
 
-	const { activities } = await processActivities(startTime);
+	const { activitiesProcessed, activities } = await processActivities(startTime);
 
 
 	// Get activities from the past 3 months
@@ -63,12 +65,10 @@ const onboardStravaUser = async (user) => {
 
 	/** @todo Later on, also save user clubs */
 
-
-
-
 	return {
 		user,
-		activities
+		activities,
+		activitiesProcessed
 	}
 }
 

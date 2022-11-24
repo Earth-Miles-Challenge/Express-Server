@@ -1,4 +1,5 @@
 const db = require('../../src/services/database.service');
+const { usersSqlValues } = require('../../__fixtures__/users');
 const { logger } = require('../../src/utils/logger.utils');
 
 /**
@@ -38,9 +39,15 @@ const getNextUserId = async () => {
 	}
 }
 
+const populateUsers = async () => {
+	const client = await getClient();
+	return await client.query(`INSERT INTO users (email, first_name, last_name) VALUES ${usersSqlValues} RETURNING *`);
+}
+
 module.exports = {
 	initializeDatabase,
 	getClient,
 	closePool,
-	getNextUserId
+	getNextUserId,
+	populateUsers
 }

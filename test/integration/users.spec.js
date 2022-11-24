@@ -1,14 +1,27 @@
 const request = require('supertest');
 const app = require('../../app');
-const { generatePlatformId, generateEmail, generateNewUser } = require('../utils/fixture-generator');
-const { initializeDatabase } = require('../utils/database');
+const {
+	generatePlatformId,
+	generateEmail,
+	generateNewUser,
+	getTokenForUser } = require('../utils/fixture-generator');
+const {
+	initializeDatabase,
+	getClient,
+	populateUsers } = require('../utils/database');
+const {
+	getComparisonUserData } = require('../utils/comparison-data');
 
-beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
+beforeAll(async () => {
+	await initializeDatabase().catch(e => console.error(e.stack));
+});
 
 describe('/users route', () => {
 	describe('GET /users/', () => {
 		describe('when fetching users without query params', () => {
 			it('should return a list of 20 users', async () => {
+				await populateUsers();
+
 				const res = await request(app)
 					.get('/users');
 
@@ -19,6 +32,8 @@ describe('/users route', () => {
 
 		describe('when fetching users with number param', () => {
 			it('should return the correct number of users', async () => {
+				await populateUsers();
+
 				const numberOfUsers = 12;
 				const res = await request(app)
 					.get(`/users?number=${numberOfUsers}`);
@@ -30,6 +45,8 @@ describe('/users route', () => {
 
 		describe('when fetching users with number and page params', () => {
 			it('should return users offset by number of pages', async () => {
+				await populateUsers();
+
 				const numberOfUsers = 10;
 				const res = await request(app)
 					.get(`/users?number=${numberOfUsers}&page=2`);
@@ -50,18 +67,29 @@ describe('/users route', () => {
 		describe('when fetching existing user', () => {
 			it('should return 200 and a single user object', async () => {
 				const newUser = await generateNewUser();
+				const token = getTokenForUser(newUser)
 				const res = await request(app)
-					.get(`/users/${newUser.id}`);
+					.get(`/users/${newUser.id}`)
+					.set('Authorization', 'Bearer ' + token);
 
 				expect(res.statusCode).toBe(200);
-				expect(res.body).toEqual(expect.objectContaining(newUser));
+				expect(getComparisonUserData(res.body)).toEqual(expect.objectContaining(newUser));
 			});
 		});
 
-		describe('when fetching non-existent user', () => {
-			it('should return 400 and error message', async () => {
+		describe('when fetching deleted user', () => {
+			it('should return 404 and error message', async () => {
+				const newUser = await generateNewUser();
+				const token = getTokenForUser(newUser)
+
+				// Delete the user
+				const client = await getClient();
+				await client.query(`DELETE FROM users WHERE id = $1`, [newUser.id]);
+
+				// Test
 				const res = await request(app)
-					.get('/users/9999');
+					.get(`/users/${newUser.id}`)
+					.set('Authorization', 'Bearer ' + token);
 
 				expect(res.statusCode).toBe(404);
 				expect(res.text).toEqual('User does not exist.');
@@ -150,6 +178,7 @@ describe('/users route', () => {
 
 				const res = await request(app)
 					.put(`/users/${user.id}`)
+					.set('Authorization', `Bearer ${getTokenForUser(user)}`)
 					.send(updateData);
 
 				expect(res.statusCode).toBe(200);
@@ -157,10 +186,17 @@ describe('/users route', () => {
 			});
 		});
 
-		describe('when updating non-existent user', () => {
+		describe('when updating deleted user', () => {
 			it('should return 404 with error message', async () => {
+				const user = await generateNewUser();
+
+				// Delete the user
+				const client = await getClient();
+				await client.query(`DELETE FROM users WHERE id = $1`, [user.id]);
+
 				const res = await request(app)
-					.put('/users/9999')
+					.put(`/users/${user.id}`)
+					.set('Authorization', `Bearer ${getTokenForUser(user)}`)
 					.send({
 						'first_name': 'Dave'
 					});
@@ -181,6 +217,7 @@ describe('/users route', () => {
 
 				const res = await request(app)
 					.put(`/users/${user.id}`)
+					.set('Authorization', `Bearer ${getTokenForUser(user)}`)
 					.send(updateData);
 
 				expect(res.statusCode).toBe(400);
@@ -199,6 +236,7 @@ describe('/users route', () => {
 
 				const res = await request(app)
 					.put(`/users/${user.id}`)
+					.set('Authorization', `Bearer ${getTokenForUser(user)}`)
 					.send(updateData);
 
 				expect(res.statusCode).toBe(400);
@@ -217,6 +255,7 @@ describe('/users route', () => {
 
 				const res = await request(app)
 					.put(`/users/${user.id}`)
+					.set('Authorization', `Bearer ${getTokenForUser(user)}`)
 					.send(updateData);
 
 				expect(res.statusCode).toBe(400);
@@ -232,14 +271,22 @@ describe('/users route', () => {
 
 			const res = await request(app)
 				.delete(`/users/${user.id}`)
+				.set('Authorization', `Bearer ${getTokenForUser(user)}`)
 				.send();
 
 			expect(res.statusCode).toBe(204);
 		});
 
 		it('Returns 404 status response for unknown user', async () => {
+			const user = await generateNewUser();
+
+			// Delete the user
+			const client = await getClient();
+			await client.query(`DELETE FROM users WHERE id = $1`, [user.id]);
+
 			const res = await request(app)
-				.delete('/users/9999')
+				.delete(`/users/${user.id}`)
+				.set('Authorization', `Bearer ${getTokenForUser(user)}`)
 				.send();
 
 			expect(res.statusCode).toBe(404);
