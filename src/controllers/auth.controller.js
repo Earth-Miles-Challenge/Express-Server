@@ -1,4 +1,4 @@
-const { logger } = require('../services/logger.service');
+const { logger } = require('../utils/logger.utils');
 const { getUserByPlatformId, createUser, updateUser } = require('../services/users.service');
 const {
 	getClientToken,

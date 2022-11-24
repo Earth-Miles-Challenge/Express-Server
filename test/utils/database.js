@@ -1,6 +1,6 @@
 const db = require('../../src/services/database.service');
 const { usersSqlValues } = require('./data/users.js');
-const { logger } = require('../../src/services/logger.service');
+const { logger } = require('../../src/utils/logger.utils');
 
 /**
  * Set up database initially using a transaction.

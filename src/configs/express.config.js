@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const morganConfig = require('./morgan.config');
 
-const { log4js, logger } = require('../services/logger.service');
+const { log4js, logger } = require('../utils/logger.utils');
 
 const cors = require('cors');
 const corsConfig = require('./cors.config');

@@ -1,4 +1,4 @@
-const { logger } = require('../services/logger.service');
+const { logger } = require('../utils/logger.utils');
 const impactService = require('../services/impact.service');
 
 async function getEmissionsAvoided(req, res, next) {

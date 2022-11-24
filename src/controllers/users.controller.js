@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getUsers, getUser, createUser, updateUser, deleteUser } = require('../services/users.service');
-const { logger } = require('../services/logger.service');
+const { logger } = require('../utils/logger.utils');
 
 async function get(req, res, next) {
 	try {

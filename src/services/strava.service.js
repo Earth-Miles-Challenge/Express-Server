@@ -1,6 +1,6 @@
 const db = require('./database.service');
 const axios = require('axios');
-const { logger } = require('../services/logger.service');
+const { logger } = require('../utils/logger.utils');
 const { getEnvVariable } = require('../utils/env.utils');
 const { createActivity } = require('./activities.service');
 
