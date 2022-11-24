@@ -1,5 +1,4 @@
 const db = require('../../src/services/database.service');
-const { usersSqlValues } = require('./data/users.js');
 const { logger } = require('../../src/utils/logger.utils');
 
 /**
@@ -8,12 +7,11 @@ const { logger } = require('../../src/utils/logger.utils');
  * @see https://node-postgres.com/features/transactions
  */
 const initializeDatabase = async () => {
-	const client = await db.pool.connect();
+	const client = await getClient();
 	try {
 		await client.query('BEGIN');
 		await client.query(`TRUNCATE TABLE activities, strava_connection_details, users;`);
 		await client.query(`ALTER SEQUENCE users_id_seq RESTART WITH 1;`);
-		await client.query(`INSERT INTO users (email, first_name, last_name) VALUES ${usersSqlValues} RETURNING *`);
 		await client.query('COMMIT');
 	} catch (e) {
 		await client.query('ROLLBACK');
@@ -21,6 +19,10 @@ const initializeDatabase = async () => {
 	} finally {
 		client.release();
 	}
+}
+
+const getClient = async () => {
+	return await db.pool.connect();
 }
 
 const closePool = () => {
@@ -38,6 +40,7 @@ const getNextUserId = async () => {
 
 module.exports = {
 	initializeDatabase,
+	getClient,
 	closePool,
 	getNextUserId
 }

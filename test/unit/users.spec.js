@@ -1,8 +1,15 @@
 const { createUser, getUser, getUserByPlatformId, getUsers, updateUser, deleteUser } = require('../../src/services/users.service');
-const { initializeDatabase } = require('../utils/database');
+const db = require('../../src/services/database.service');
+const { usersSqlValues } = require('../../__fixtures__/users');
+const { initializeDatabase, getClient } = require('../utils/database');
 const { generatePlatformId, generateEmail, generateNewUser } = require('../utils/fixture-generator');
 
-beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
+beforeAll(async () => {
+	initializeDatabase().catch(e => console.error(e.stack));
+
+	const client = await getClient();
+	await client.query(`INSERT INTO users (email, first_name, last_name) VALUES ${usersSqlValues} RETURNING *`);
+});
 
 describe('Users service', () => {
 	describe('getUsers', () => {
