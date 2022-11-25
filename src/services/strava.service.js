@@ -190,7 +190,14 @@ const getClientToken = async (code) => {
 
 const getUserAccessToken = async (userId) => {
 	const stravaConn = await getStravaConnection(userId);
-	if (stravaConn.expires_at > Date.now()) return stravaConn.access_token;
+	logger.info(stravaConn.expires_at);
+	logger.info(parseInt(Date.now() / 1000));
+	if (stravaConn.expires_at > parseInt(Date.now() / 1000)) {
+		return {
+			accessToken: stravaConn.access_token,
+			stravaConn: stravaConn
+		};
+	}
 	try {
 		const response = await axios.post(
 			`https://www.strava.com/api/v3/oauth/token`, {
@@ -202,9 +209,14 @@ const getUserAccessToken = async (userId) => {
 		const { access_token, refresh_token, expires_at, expires_in } = response.data;
 
 		// Update Strava connection details — returns a promise
-		updateStravaConnection(userId, { access_token, refresh_token, expires_at, expires_in });
+		const getUpdateData = () => refresh_token !== stravaConn.refresh_token
+			? { access_token, refresh_token, expires_at, expires_in }
+			: { access_token, expires_at, expires_in };
 
-		return access_token;
+		return {
+			accessToken: access_token,
+			stravaConn: await updateStravaConnection(userId, getUpdateData())
+		};
 	} catch (err) {
 		logger.debug(`There was an error while refreshing an access token from Strava:`, err.message);
 		throw err;
@@ -339,6 +351,7 @@ module.exports = {
 	getStravaRefreshToken,
 	updateStravaRefreshToken,
 	getClientToken,
+	getUserAccessToken,
 	getAthleteActivities,
 	createActivityFromStravaActivity,
 	parseTimezone,

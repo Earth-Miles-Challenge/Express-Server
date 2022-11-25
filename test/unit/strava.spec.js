@@ -6,6 +6,7 @@ const {
 	updateStravaConnection,
 	deleteStravaConnection,
 	getClientToken,
+	getUserAccessToken,
 	getAthleteActivities,
 	createActivityFromStravaActivity,
 	parseTimezone,
@@ -141,10 +142,48 @@ describe('Strava service', () => {
 		});
 	});
 
-	xdescribe('getClientToken', () => {
-		describe('when ...', () => {
-			it('should ...', async () => {
-				expect(false).toBeTruthy();
+	describe('getClientToken', () => {
+		describe('when Strava returns successfully', () => {
+			it('should return data', async () => {
+				mockAxios.post.mockResolvedValueOnce(stravaMocks.oAuthTokenResponse);
+				const response = await getClientToken('abc');
+				expect(response).toEqual(expect.objectContaining(stravaMocks.oAuthTokenResponse.data));
+			});
+		});
+
+		describe('when Strava returns error', () => {
+			it('should throw an error', async () => {
+				mockAxios.post.mockRejectedValueOnce(new Error('Strava error'));
+				await expect(getClientToken('abc')).rejects.toThrow('Strava error');
+			});
+		});
+	});
+
+	describe('getUserAccessToken', () => {
+		describe('when access token is still valid', () => {
+			it('should return existing access token', async () => {
+				const user = await generateNewUser();
+				const originalStravaConn = await generateStravaConnectionForUser(user);
+				const { accessToken, stravaConn } = await getUserAccessToken(user.id);
+
+				expect(accessToken).toBe(originalStravaConn.access_token);
+				expect(stravaConn).toEqual(expect.objectContaining(originalStravaConn));
+			});
+		});
+
+		describe('when access token has expired', () => {
+			it('should return a new access token', async () => {
+				mockAxios.post.mockResolvedValueOnce(stravaMocks.oAuthTokenResponse);
+				const user = await generateNewUser();
+				const originalStravaConn = await generateStravaConnectionForUser(user, {
+					expires_at: parseInt(new Date().getTime() / 1000) - 1000,
+					expires_in: 0,
+				});
+				const { accessToken, stravaConn } = await getUserAccessToken(user.id);
+
+				expect(accessToken).toBe(stravaMocks.oAuthTokenResponse.data.access_token);
+				expect(accessToken).not.toBe(originalStravaConn.access_token);
+				expect(stravaConn).not.toEqual(expect.objectContaining(originalStravaConn));
 			});
 		});
 	});
@@ -152,6 +191,7 @@ describe('Strava service', () => {
 	xdescribe('getAthleteActivities', () => {
 		describe('when ...', () => {
 			it('should ...', async () => {
+				mockAxios.get.mockResolvedValueOnce(stravaMocks.oAuthTokenResponse);
 				expect(false).toBeTruthy();
 			});
 		});

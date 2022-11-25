@@ -75,8 +75,8 @@ const generateUserActivities = async (number, user, activityData = {}) => {
 const getStravaConnectionData = (user, connectionData = {}) => {
 	return {
 		...{
-			expires_at: parseInt(new Date().getTime() / 1000),
-			expires_in: 10000000,
+			expires_at: 172800 + parseInt(new Date().getTime() / 1000),
+			expires_in: 172800,
 			refresh_token: 'myRefreshToken',
 			access_token: 'myAccessToken',
 			activity_write: true,
