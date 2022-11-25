@@ -8,18 +8,18 @@ const getUsers = async (searchParams = {}) => {
 	} = searchParams;
 
 	const pageOffset = page > 0 ? (page-1) * number : 0;
-	const result = await db.query(`SELECT * FROM users LIMIT ${number} OFFSET ${pageOffset}`);
+	const result = await db.query(`SELECT * FROM user_account LIMIT ${number} OFFSET ${pageOffset}`);
 	return result.rows;
 }
 
 const getUser = async (userId) => {
-	const result = await db.query(`SELECT * FROM users WHERE id = $1`, [userId]);
+	const result = await db.query(`SELECT * FROM user_account WHERE id = $1`, [userId]);
 	return result.rows[0];
 }
 
 const getUserByPlatformId = async (platform, platform_id) => {
 	const result = await db.query(`
-		SELECT * FROM users
+		SELECT * FROM user_accounts
 		WHERE activity_platform = $1
 		AND activity_platform_id = $2`,
 		[platform, platform_id]
@@ -38,7 +38,7 @@ const createUser = async (data) => {
 	} = data;
 
 	if (validate(data)) {
-		const sql = `INSERT INTO public.users(first_name, last_name, email, profile_photo, activity_platform, activity_platform_id)
+		const sql = `INSERT INTO user_account(first_name, last_name, email, profile_photo, activity_platform, activity_platform_id)
 				VALUES($1, $2, $3, $4, $5, $6)
 				RETURNING *`;
 		const values = [first_name, last_name, email, profile_photo, activity_platform, activity_platform_id];
@@ -73,7 +73,7 @@ const updateUser = async (userId, newData) => {
 			];
 		}, [[], 1, []]);
 
-		const sql = `UPDATE public.users
+		const sql = `UPDATE user
 					SET ${updateSql.join(',')}
 					WHERE id = $${n}
 					RETURNING *`;
@@ -92,7 +92,7 @@ const deleteUser = async (userId) => {
 		throw err;
 	}
 
-	const sql = `DELETE FROM public.users
+	const sql = `DELETE FROM user_account
 				WHERE id = $1`;
 	const result = await db.query(sql, [userId]);
 	return result.rowCount;

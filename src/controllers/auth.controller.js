@@ -2,9 +2,11 @@ const { logger } = require('../utils/logger.utils');
 const { getUserByPlatformId, createUser, updateUser } = require('../services/users.service');
 const {
 	getClientToken,
-	getStravaConnectionDetails,
-	updateStravaConnectionDetails,
-	createStravaConnectionDetails
+	getStravaConnection,
+	updateStravaConnection,
+	createStravaConnection,
+	parseScope,
+	getStravaRefreshToken
 } = require('../services/strava.service');
 const { generateAccessToken } = require('../services/authentication.service');
 const { onboardUser } = require('../services/onboarding.service');
@@ -23,6 +25,8 @@ async function authenticateStrava(req, res, next) {
 		next(err);
 	}
 
+	const scope = parseScope(req.query.scope);
+
 	try {
 		const response = await getClientToken(req.query.code);
 		try {
@@ -35,30 +39,39 @@ async function authenticateStrava(req, res, next) {
 				'activity_platform_id': response.athlete.id
 			};
 			const existingUser = await getUserByPlatformId('strava', response.athlete.id)
-
 			const user = !existingUser
 				? await createUser(userData)
 				: await updateUser(existingUser.id, userData);
 
 			// Save the Strava connection details
-			const hasStravaConn = !! existingUser
-				? await getStravaConnectionDetails(user.id)
-				: false;
 			const stravaConnData = {
 				user_id: user.id,
 				strava_id: response.athlete.id,
 				expires_at: response.expires_at,
 				expires_in: response.expires_in,
-				refresh_token: response.refresh_token,
-				access_token: response.access_token
+				access_token: response.access_token,
+				...scope
 			}
-			!hasStravaConn
-				? await createStravaConnectionDetails(stravaConnData)
-				: await updateStravaConnectionDetails(user.id, stravaConnData);
 
-			// Start onboarding the user
-			// NOTE: This runs asynchronously and we don't need to await the
-			// return.
+			// Update or create Strava connection
+			const isUpdate = !!existingUser && await getStravaConnection(user.id);
+			if (isUpdate) {
+				if (response.refresh_token === getStravaRefreshToken(user.id)) {
+					await updateStravaConnection(user.id, stravaConnData);
+				} else {
+					await updateStravaConnection(user.id, {
+						...stravaConnData,
+						refresh_token: response.refresh_token
+					});
+				}
+			} else {
+				await createStravaConnection({
+					...stravaConnData,
+					refresh_token: response.refresh_token
+				});
+			}
+
+			// NOTE: Onboarding runs asynchronously and we don't need to await the return.
 			onboardUser(user.id);
 
 			// Generate the token

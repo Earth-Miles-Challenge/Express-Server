@@ -84,7 +84,7 @@ describe('/users route', () => {
 
 				// Delete the user
 				const client = await getClient();
-				await client.query(`DELETE FROM users WHERE id = $1`, [newUser.id]);
+				await client.query(`DELETE FROM user_account WHERE id = $1`, [newUser.id]);
 
 				// Test
 				const res = await request(app)
@@ -192,7 +192,7 @@ describe('/users route', () => {
 
 				// Delete the user
 				const client = await getClient();
-				await client.query(`DELETE FROM users WHERE id = $1`, [user.id]);
+				await client.query(`DELETE FROM user_account WHERE id = $1`, [user.id]);
 
 				const res = await request(app)
 					.put(`/users/${user.id}`)
@@ -282,7 +282,7 @@ describe('/users route', () => {
 
 			// Delete the user
 			const client = await getClient();
-			await client.query(`DELETE FROM users WHERE id = $1`, [user.id]);
+			await client.query(`DELETE FROM user_account WHERE id = $1`, [user.id]);
 
 			const res = await request(app)
 				.delete(`/users/${user.id}`)

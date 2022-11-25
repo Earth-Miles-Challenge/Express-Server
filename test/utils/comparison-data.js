@@ -16,7 +16,13 @@ const getComparisonUserData = (userData) => {
 	}
 }
 
+const getComparisonStravaConnData = (stravaConnData) => {
+	const filteredData = Object.entries(stravaConnData).filter(([key]) => key !== 'refresh_token');
+	return Object.fromEntries(filteredData);
+}
+
 module.exports = {
 	getComparisonActivityData,
-	getComparisonUserData
+	getComparisonUserData,
+	getComparisonStravaConnData
 }

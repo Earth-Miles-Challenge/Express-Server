@@ -1,8 +1,7 @@
 const mockAxios = require('../../__mocks__/axios');
 const { activitiesResponse } = require('../../__fixtures__/strava');
 const onboardingService = require('../../src/services/onboarding.service');
-const {
-	initializeDatabase } = require('../utils/database');
+const { initializeDatabase } = require('../utils/database');
 const {
 	generateNewUser,
 	generateStravaConnectionForUser,

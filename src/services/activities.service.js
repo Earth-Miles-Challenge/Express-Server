@@ -17,7 +17,7 @@ const getActivity = async (activityId) => {
 			start_latlng,
 			end_latlng,
 			co2_avoided_grams
-		FROM activities
+		FROM activity
 		WHERE id = $1`,
 		[activityId]
 	);
@@ -53,7 +53,7 @@ const getActivities = async (userId, searchParams = {}) => {
 			start_latlng,
 			end_latlng,
 			co2_avoided_grams
-		FROM activities
+		FROM activity
 		WHERE user_id = $1
 		ORDER BY start_date DESC
 		LIMIT $2
@@ -66,7 +66,7 @@ const getActivities = async (userId, searchParams = {}) => {
 
 const createActivity = async (data) => {
 	if (validate(data)) {
-		const sql = `INSERT INTO public.activities(
+		const sql = `INSERT INTO activity(
 			user_id,
 			activity_platform,
 			activity_platform_activity_id,
@@ -127,7 +127,7 @@ const updateActivity = async (activityId, newData) => {
 			];
 		}, [[], 1, []]);
 
-		const sql = `UPDATE public.activities
+		const sql = `UPDATE activity
 					SET ${updateSql.join(',')}
 					WHERE id = $${n}
 					RETURNING *`;

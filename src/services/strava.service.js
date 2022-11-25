@@ -4,63 +4,172 @@ const { logger } = require('../utils/logger.utils');
 const { getEnvVariable } = require('../utils/env.utils');
 const { createActivity } = require('./activities.service');
 
-const getStravaConnectionDetails = async (userId) => {
-	const result = await db.query(`SELECT * FROM strava_connection_details WHERE user_id = $1`, [userId]);
-	return result.rows[0];
+// http://localhost:3000/?state=http%3A%2F%2Flocalhost%3A3000%2F&code=8d5bb979e7253195cbfe507f40133f650f55a53b&scope=read
+// http://localhost:3000/?state=http%3A%2F%2Flocalhost%3A3000%2F&code=37c97ed058b7fc0281472712169483744faed4c3&scope=read,activity:write,activity:read_all,profile:read_all
+
+const getStravaConnection = async (userId) => {
+	const result = await db.query(`SELECT * FROM strava_connection WHERE user_id = $1`, [userId]);
+	return result.rows.length ? result.rows[0] : null;
 }
 
-const createStravaConnectionDetails = async (data) => {
+const createStravaConnection = async (data) => {
 	const {
 		user_id,
 		strava_id,
 		expires_at,
 		expires_in,
 		refresh_token,
-		access_token
+		access_token,
+		activity_write,
+		activity_read_all,
+		profile_read_all
 	} = data;
-	const sql = `INSERT INTO strava_connection_details(user_id, strava_id, expires_at, expires_in, refresh_token, access_token)
-			VALUES($1, $2, $3, $4, $5, $6)
-			RETURNING *`;
-	const values = [user_id, strava_id, expires_at, expires_in, refresh_token, access_token];
-	const result = await db.query(sql, values);
-	return result.rows[0];
+
+	const client = await db.pool.connect();
+	try {
+		await client.query('BEGIN');
+		const stravaConn = await client.query(
+			`INSERT INTO strava_connection(
+				user_id,
+				strava_id,
+				expires_at,
+				expires_in,
+				access_token,
+				activity_write,
+				activity_read_all,
+				profile_read_all
+			)
+			VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+			RETURNING *`,
+			[
+				user_id,
+				strava_id,
+				expires_at,
+				expires_in,
+				access_token,
+				activity_write,
+				activity_read_all,
+				profile_read_all
+			]
+		);
+		await client.query(
+			`INSERT INTO strava_refresh_token(
+				user_id,
+				refresh_token
+			)
+			VALUES($1, $2)
+			RETURNING *`,
+			[
+				user_id,
+				refresh_token
+			]
+		);
+		await client.query('COMMIT');
+		return stravaConn.rows[0];
+	} catch (e) {
+		await client.query('ROLLBACK');
+		throw e;
+	} finally {
+		client.release();
+	}
 }
 
-const updateStravaConnectionDetails = async (userId, newData) => {
-	const existingData = await getStravaConnectionDetails(userId);
+const updateStravaConnection = async (userId, newData) => {
+	const existingData = await getStravaConnection(userId);
 
 	if (!existingData) {
-		const err = new Error(`Strava connection details do not exist.`);
+		const err = new Error(`Strava connection for user does not exist.`);
 		err.name = 'invalidUser';
 		throw err;
 	}
 
-	const validColumns = ['user_id', 'strava_id', 'expires_at', 'expires_in', 'refresh_token', 'access_token'];
-	const [updateSql, n, updateValues] = Object.keys(newData).reduce(([sql, n, values], column) => {
+	const validColumns = getStravaConnectionColumnNames();
+	const [updateSql, n, updateValues, updateRefreshToken] = Object.keys(newData).reduce(([sql, n, values, updateRefreshToken], column) => {
 		if (!validColumns.includes(column)) {
 			const err = new Error(`Unknown column ${column} passed.`);
 			err.name = 'invalidColumn';
 			throw err;
 		}
 
-		return [
-			[...sql, `${column} = ($${n})`],
-			n + 1,
-			[...values, newData[column]]
-		];
-	}, [[], 1, []]);
+		if (column === 'refresh_token') {
+			return [
+				sql,
+				n,
+				values,
+				true
+			];
+		} else {
+			return [
+				[...sql, `${column} = ($${n})`],
+				n + 1,
+				[...values, newData[column]],
+				updateRefreshToken
+			];
+		}
+	}, [[], 1, [], false]);
 
-	const sql = `UPDATE strava_connection_details
-				SET ${updateSql.join(',')}
-				WHERE user_id = $${n}
-				RETURNING *`;
+	const client = await db.pool.connect();
+	try {
+		await client.query('BEGIN');
+		const stravaConn = await client.query(
+			`UPDATE strava_connection
+			SET ${updateSql.join(',')}
+			WHERE user_id = $${n}
+			RETURNING *`,
+			[...updateValues, userId]
+		);
 
-	const result = await db.query(sql, [...updateValues, userId]);
-	return result.rows[0];
+		if (updateRefreshToken) {
+			await client.query(
+				`UPDATE strava_refresh_token
+				SET refresh_token = $1
+				WHERE user_id = $2;`,
+				[newData.refresh_token, userId]
+			);
+		}
+
+		await client.query('COMMIT');
+		return stravaConn.rows[0];
+	} catch (e) {
+		await client.query('ROLLBACK');
+		throw e;
+	} finally {
+		client.release();
+	}
 }
 
-const deleteStravaConnectionDetails = async (userId) => {
+const deleteStravaConnection = async (userId) => {
+	const user = await getStravaConnection(userId);
 
+	if (!user) {
+		const err = new Error('Strava connection for user does not exist.');
+		err.name = 'invalidUser';
+		throw err;
+	}
+
+	const client = await db.pool.connect();
+	try {
+		await client.query('BEGIN');
+		await client.query(`DELETE FROM strava_connection WHERE user_id = $1`, [userId]);
+		await client.query(`DELETE FROM strava_refresh_token WHERE user_id = $1`, [userId]);
+		await client.query('COMMIT');
+		return 1;
+	} catch (e) {
+		await client.query('ROLLBACK');
+		throw e;
+	} finally {
+		client.release();
+	}
+}
+
+const getStravaRefreshToken = async (userId) => {
+	const result = await db.query(`SELECT refresh_token FROM strava_refresh_token WHERE user_id = $1`, [userId]);
+	return result.rows.length ? result.rows[0] : null;
+}
+
+const updateStravaRefreshToken = async (token, userId) => {
+	const result = await db.query(`UPDATE strava_refresh_token SET refresh_token = $1 WHERE user_id = $2 RETURNING refresh_token`, [token, userId]);
+	return result.rows.length ? result.rows[0] : null;
 }
 
 const getClientToken = async (code) => {
@@ -80,7 +189,7 @@ const getClientToken = async (code) => {
 }
 
 const getUserAccessToken = async (userId) => {
-	const stravaConn = await getStravaConnectionDetails(userId);
+	const stravaConn = await getStravaConnection(userId);
 	if (stravaConn.expires_at > Date.now()) return stravaConn.access_token;
 	try {
 		const response = await axios.post(
@@ -93,7 +202,7 @@ const getUserAccessToken = async (userId) => {
 		const { access_token, refresh_token, expires_at, expires_in } = response.data;
 
 		// Update Strava connection details — returns a promise
-		updateStravaConnectionDetails(userId, { access_token, refresh_token, expires_at, expires_in });
+		updateStravaConnection(userId, { access_token, refresh_token, expires_at, expires_in });
 
 		return access_token;
 	} catch (err) {
@@ -191,12 +300,47 @@ const getEmissionsAvoidedForActivity = (activity) => {
  */
 const parseTimezone = timezone => timezone.match(/.* (.*)/)[1];
 
+/**
+ * Parse the scope query string.
+ * @param {string} scope
+ * @returns object
+ */
+const parseScope = scope => {
+	const granted = scope.replaceAll(':','_').split(',');
+	return [
+		'activity_write',
+		'activity_read_all',
+		'profile_read_all'
+	].reduce((permissions, scopeName) => {
+		return {
+			...permissions,
+			[scopeName]: granted.includes(scopeName)
+		}
+	}, {});
+}
+
+const getStravaConnectionColumnNames = () => [
+	'user_id',
+	'strava_id',
+	'expires_at',
+	'expires_in',
+	'access_token',
+	'activity_write',
+	'activity_read_all',
+	'profile_read_all',
+	'refresh_token'
+];
+
 module.exports = {
-	getStravaConnectionDetails,
-	createStravaConnectionDetails,
-	updateStravaConnectionDetails,
-	deleteStravaConnectionDetails,
+	getStravaConnection,
+	createStravaConnection,
+	updateStravaConnection,
+	deleteStravaConnection,
+	getStravaRefreshToken,
+	updateStravaRefreshToken,
 	getClientToken,
 	getAthleteActivities,
-	createActivityFromStravaActivity
+	createActivityFromStravaActivity,
+	parseTimezone,
+	parseScope
 }

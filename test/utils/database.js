@@ -11,8 +11,8 @@ const initializeDatabase = async () => {
 	const client = await getClient();
 	try {
 		await client.query('BEGIN');
-		await client.query(`TRUNCATE TABLE activities, strava_connection_details, users;`);
-		await client.query(`ALTER SEQUENCE users_id_seq RESTART WITH 1;`);
+		await client.query(`TRUNCATE TABLE activity, strava_connection, strava_refresh_token, user_account;`);
+		await client.query(`ALTER SEQUENCE user_account_id_seq RESTART WITH 1;`);
 		await client.query('COMMIT');
 	} catch (e) {
 		await client.query('ROLLBACK');
@@ -32,7 +32,7 @@ const closePool = () => {
 
 const getNextUserId = async () => {
 	try {
-		const userId = await db.query(`SELECT currval(pg_get_serial_sequence('users', 'id')) as currentid;`);
+		const userId = await db.query(`SELECT currval(pg_get_serial_sequence('user', 'id')) as currentid;`);
 		return parseInt(userId['rows'][0].currentid) + 1;
 	} catch (err) {
 		logger.error(err);
@@ -41,7 +41,7 @@ const getNextUserId = async () => {
 
 const populateUsers = async () => {
 	const client = await getClient();
-	return await client.query(`INSERT INTO users (email, first_name, last_name) VALUES ${usersSqlValues} RETURNING *`);
+	return await client.query(`INSERT INTO user_account (email, first_name, last_name) VALUES ${usersSqlValues} RETURNING *`);
 }
 
 module.exports = {
