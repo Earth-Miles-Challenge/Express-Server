@@ -6,7 +6,7 @@ const { oAuthTokenResponse } = require('../../__fixtures__/strava');
 const { getEnvVariable } = require('../../src/utils/env.utils');
 const { verifyAccessToken } = require('../../src/services/authentication.service');
 const { getUser } = require('../../src/services/users.service');
-const { createStravaConnection, getStravaConnection } = require('../../src/services/strava.service');
+const { createStravaConnectionDetails, getStravaConnectionDetails } = require('../../src/services/strava.service');
 const { initializeDatabase } = require('../utils/database');
 const { generateNewUser } = require('../utils/fixture-generator');
 
@@ -62,7 +62,7 @@ describe('GET /auth/strava', () => {
 			expect(user).toEqual(expect.objectContaining(expectedUser));
 
 			// Check that the Strava connection details exist
-			const stravaConn = await getStravaConnection(decodedToken.id);
+			const stravaConn = await getStravaConnectionDetails(decodedToken.id);
 			expect(stravaConn).not.toBeFalsy();
 		});
 
@@ -74,7 +74,7 @@ describe('GET /auth/strava', () => {
 				activity_platform_id: oAuthTokenResponse.data.athlete.id
 			});
 
-			const oldStravaConn = await createStravaConnection({
+			const oldStravaConn = await createStravaConnectionDetails({
 				user_id: user.id,
 				strava_id: oAuthTokenResponse.data.athlete.id,
 				expires_at: 20000000,
@@ -94,7 +94,7 @@ describe('GET /auth/strava', () => {
 			// Check that the decoded token has the new Strava details
 			const token = cookies[0].match(/token=(.*); Domain/)[1]
 			const decodedToken = verifyAccessToken(token);
-			const newStravaConn = await getStravaConnection(decodedToken.id);
+			const newStravaConn = await getStravaConnectionDetails(decodedToken.id);
 			expect(newStravaConn).not.toEqual(oldStravaConn);
 		});
 	});

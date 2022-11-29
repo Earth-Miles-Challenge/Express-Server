@@ -19,7 +19,8 @@ const getUser = async (userId) => {
 
 const getUserByPlatformId = async (platform, platform_id) => {
 	const result = await db.query(`
-		SELECT * FROM user_accounts
+		SELECT *
+		FROM user_account
 		WHERE activity_platform = $1
 		AND activity_platform_id = $2`,
 		[platform, platform_id]

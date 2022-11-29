@@ -88,6 +88,7 @@ async function authenticateStrava(req, res, next) {
 				data: {}
 			});
 		} catch (err) {
+			logger.info(err);
 			next(err);
 		}
 	} catch (stravaError) {

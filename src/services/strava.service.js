@@ -1,5 +1,6 @@
 const db = require('./database.service');
 const axios = require('axios');
+const fetch = require('node-fetch');
 const { logger } = require('../utils/logger.utils');
 const { getEnvVariable } = require('../utils/env.utils');
 const { createActivity } = require('./activities.service');
@@ -179,8 +180,10 @@ const getClientToken = async (code) => {
 			client_secret: getEnvVariable('STRAVA_CLIENT_SECRET'),
 			code: code,
 			grant_type: 'authorization_code'
+		}, {
+			headers: { 'Accept-Encoding': 'application/json' }
 		});
-
+		logger.info(response);
 		return response.data;
 	} catch (err) {
 		logger.debug(`There was an error while getting a client token from Strava:`, err.message);
@@ -318,7 +321,7 @@ const parseTimezone = timezone => timezone.match(/.* (.*)/)[1];
  * @returns object
  */
 const parseScope = scope => {
-	const granted = scope.replaceAll(':','_').split(',');
+	const granted = scope.replace(/:/g,'_').split(',');
 	return [
 		'activity_write',
 		'activity_read_all',

@@ -246,7 +246,7 @@ describe('Strava service', () => {
 					'read',
 					{ 'activity_write': false, 'activity_read_all': false, 'profile_read_all': false }
 				],
-			])('should return array containing grant scopes set to true and others set to false', (scope, expected) => {
+			])('should return array containing grant scopes with true/false values', (scope, expected) => {
 				expect(parseScope(scope)).toEqual(expect.objectContaining(expected))
 			});
 		});
