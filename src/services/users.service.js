@@ -8,12 +8,21 @@ const getUsers = async (searchParams = {}) => {
 	} = searchParams;
 
 	const pageOffset = page > 0 ? (page-1) * number : 0;
-	const result = await db.query(`SELECT * FROM user_account LIMIT ${number} OFFSET ${pageOffset}`);
+	const result = await db.query(`SELECT *
+		FROM user_account
+		LIMIT ${number}
+		OFFSET ${pageOffset}`
+	);
 	return result.rows;
 }
 
 const getUser = async (userId) => {
-	const result = await db.query(`SELECT * FROM user_account WHERE id = $1`, [userId]);
+	const result = await db.query(`
+		SELECT *
+		FROM user_account
+		WHERE id = $1`,
+		[userId]
+	);
 	return result.rows[0];
 }
 
@@ -74,7 +83,7 @@ const updateUser = async (userId, newData) => {
 			];
 		}, [[], 1, []]);
 
-		const sql = `UPDATE user
+		const sql = `UPDATE user_account
 					SET ${updateSql.join(',')}
 					WHERE id = $${n}
 					RETURNING *`;

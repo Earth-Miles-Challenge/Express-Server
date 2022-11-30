@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getUsers, getUser, createUser, updateUser, deleteUser } = require('../services/users.service');
 const { logger } = require('../utils/logger.utils');
+const { onboardUser } = require('../services/onboarding.service');
 
 async function get(req, res, next) {
 	try {
@@ -46,6 +47,17 @@ async function remove(req, res, next) {
 	} catch (err) {
 		err.status = getErrorStatus(err);
 		logger.debug(`Error when removing user`, err.message);
+		next(err);
+	}
+}
+
+async function onboard(req, res, next) {
+	try {
+		const response = await onboardUser(req.params.userId);
+		res.status(200).send(response);
+	} catch (err) {
+		err.status = getErrorStatus(err);
+		logger.debug(`Error when onboarding user`, err.message);
 		next(err);
 	}
 }
@@ -178,5 +190,6 @@ module.exports = {
 	create,
 	update,
 	remove,
+	onboard,
 	userExists
 };

@@ -175,6 +175,11 @@ const updateStravaRefreshToken = async (token, userId) => {
 
 const getClientToken = async (code) => {
 	try {
+		/**
+		 * Headers required with accept-encoding permitting JSON response
+		 * due to Axios bug.
+		 * @see https://github.com/axios/axios/issues/5298
+		 */
 		const response = await axios.post(`https://www.strava.com/api/v3/oauth/token`, {
 			client_id: getEnvVariable('STRAVA_CLIENT_ID'),
 			client_secret: getEnvVariable('STRAVA_CLIENT_SECRET'),
@@ -183,7 +188,7 @@ const getClientToken = async (code) => {
 		}, {
 			headers: { 'Accept-Encoding': 'application/json' }
 		});
-		logger.info(response);
+
 		return response.data;
 	} catch (err) {
 		logger.debug(`There was an error while getting a client token from Strava:`, err.message);
@@ -193,8 +198,6 @@ const getClientToken = async (code) => {
 
 const getUserAccessToken = async (userId) => {
 	const stravaConn = await getStravaConnection(userId);
-	logger.info(stravaConn.expires_at);
-	logger.info(parseInt(Date.now() / 1000));
 	if (stravaConn.expires_at > parseInt(Date.now() / 1000)) {
 		return {
 			accessToken: stravaConn.access_token,
@@ -202,12 +205,19 @@ const getUserAccessToken = async (userId) => {
 		};
 	}
 	try {
+		/**
+		 * Headers required with accept-encoding permitting JSON response
+		 * due to Axios bug.
+		 * @see https://github.com/axios/axios/issues/5298
+		 */
 		const response = await axios.post(
 			`https://www.strava.com/api/v3/oauth/token`, {
 			client_id: getEnvVariable('STRAVA_CLIENT_ID'),
 			client_secret: getEnvVariable('STRAVA_CLIENT_SECRET'),
 			grant_type: 'refresh_token',
 			refresh_token: stravaConn.refresh_token
+		}, {
+			headers: { 'Accept-Encoding': 'application/json' }
 		});
 		const { access_token, refresh_token, expires_at, expires_in } = response.data;
 
@@ -228,21 +238,17 @@ const getUserAccessToken = async (userId) => {
 
 const getAthleteActivities = async (userId, after = 0, perPage = 30) => {
 	try {
-		const accessToken = await getUserAccessToken(userId);
+		const { accessToken } = await getUserAccessToken(userId);
 		const response = await axios.get(
 			`https://www.strava.com/api/v3/athlete/activities?after=${after}&per_page=${perPage}`, {
-			headers: { Authorization: `Bearer ${accessToken}` }
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				'Accept-Encoding': 'application/json'
+			}
 		});
-
-		return await response.data;
-
-		// return await activities.map(async(activityData) => {
-		// 	logger.info(`getAthleteActivities: ${activityData} - ${userId}`);
-		// 	const activity = await createActivityFromStravaActivity(userId, activityData);
-		// 	return activity;
-		// });
+		return response.data;
 	} catch (err) {
-		logger.debug(`There was an error fetching athlete activities:`, err.message);
+		logger.info(`There was an error fetching athlete activities:`, err.message);
 		throw err;
 	}
 }

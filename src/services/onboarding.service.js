@@ -52,7 +52,17 @@ const onboardStravaUser = async (user) => {
 		);
 	}
 
-	const { activitiesProcessed, activities } = await processActivities(startTime);
+	try {
+		const { activitiesProcessed, activities } = await processActivities(startTime);
+		return {
+			user,
+			activities,
+			activitiesProcessed
+		};
+	} catch (error) {
+		logger.debug(error);
+		return null;
+	}
 
 
 	// Get activities from the past 3 months
@@ -64,12 +74,6 @@ const onboardStravaUser = async (user) => {
 	// based on this distance. Store in separate table.
 
 	/** @todo Later on, also save user clubs */
-
-	return {
-		user,
-		activities,
-		activitiesProcessed
-	}
 }
 
 const onboardUser = async (userId) => {
