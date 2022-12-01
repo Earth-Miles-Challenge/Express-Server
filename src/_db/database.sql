@@ -48,14 +48,22 @@ CREATE TABLE IF NOT EXISTS "activity" (
   "start_date" TIMESTAMPTZ,
   "timezone" VARCHAR,
   "distance" FLOAT,
-  "commute" BOOLEAN,
   "start_latlng" VARCHAR,
   "end_latlng" VARCHAR,
-  "co2_avoided_grams" INTEGER,
+  "activity_polyline" TEXT,
+  "commute" BOOLEAN
   UNIQUE ("activity_platform", "activity_platform_activity_id")
 );
 
+CREATE TABLE IF NOT EXISTS "activity_impact" (
+  "activity_id" REFERENCES "activity" (id) ON DELETE CASCADE,
+  "fossil_alternative_distance" FLOAT,
+  "fossil_alternative_polyline" TEXT,
+  "fossil_alternative_co2" INTEGER
+);
+
 CREATE INDEX ON "activity" ("activity_type");
+CREATE INDEX ON "activity_impact" ("fossil_alternative_co2");
 
 -- ALTER TABLE "strava_connection" ADD FOREIGN KEY ("user_id") REFERENCES "user_account" ("id");
 
