@@ -2,10 +2,12 @@ const { createUser } = require("../../src/services/users.service");
 const { createActivity } = require("../../src/services/activities.service");
 const { createStravaConnection } = require('../../src/services/strava.service');
 const { generateAccessToken } = require('../../src/services/authentication.service');
+const { createActivityImpact } = require("../../src/services/activity-impact.service");
+const { logger } = require("../../src/utils/logger.utils");
 
-let platformId = 1;
-let platformActivityId = 1;
-let emailId = 1;
+let platformId = Math.round(10000 * Math.random());
+let platformActivityId = Math.round(10000 * Math.random());
+let emailId = Math.round(10000 * Math.random());
 
 const generatePlatformId = () => {
 	platformId += 1;
@@ -52,10 +54,11 @@ const generateUserActivity = async (user, activityData = {}) => {
 			"start_date" : "2018-02-20T18:02:13Z",
 			"timezone" : "America/Los_Angeles",
 			"distance": 3000,
-			"commute": false,
 			"start_latlng": "",
 			"end_latlng": "",
-			"co2_avoided_grams": 576
+			"map_polyline": "",
+			"commute": false,
+			"activity_impact": null
 		},
 		...activityData,
 		user_id: user.id
@@ -93,13 +96,36 @@ const generateStravaConnectionForUser = async (user, connectionData = {}) => {
 	return await createStravaConnection(getStravaConnectionData(user, connectionData));
 }
 
+const generateUserActivityImpact = async (activityImpactData = {}, activityUser = null) => {
+	const getActivityId = async (activityImpactData, activityUser) => {
+		if (activityImpactData.activity_id) return activityImpactData.activity_id;
+		const user = activityUser === null
+			? await generateNewUser()
+			: activityUser;
+		const activity = await generateUserActivity(user);
+		return activity.id;
+	}
+
+	return await createActivityImpact({
+		...{
+			"activity_id": await getActivityId(activityImpactData, activityUser),
+			"fossil_alternative_distance": 3125,
+			"fossil_alternative_polyline": "",
+			"fossil_alternative_co2": 600,
+		},
+		...activityImpactData
+	})
+}
+
 module.exports = {
 	generatePlatformId,
+	generatePlatformActivityId,
 	generateEmail,
 	generateNewUser,
 	getTokenForUser,
 	generateUserActivity,
 	generateUserActivities,
 	getStravaConnectionData,
-	generateStravaConnectionForUser
+	generateStravaConnectionForUser,
+	generateUserActivityImpact,
 }

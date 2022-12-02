@@ -10,7 +10,7 @@ const { createStravaConnectionDetails, getStravaConnectionDetails } = require('.
 const { initializeDatabase } = require('../utils/database');
 const { generateNewUser } = require('../utils/fixture-generator');
 
-beforeEach(() => initializeDatabase().catch(e => console.error(e.stack)));
+beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
 beforeEach(() => mockAxios.post.mockClear());
 
 describe('GET /auth/strava', () => {

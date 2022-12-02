@@ -61,7 +61,9 @@ describe('Strava service', () => {
 		describe('when called for non-existent user', () => {
 			it('should throw an error', async () => {
 				const stravaConnData = getStravaConnectionData({id:9999, strava_id:'abc123'});
-				await expect(createStravaConnection(stravaConnData)).rejects.toThrow();
+				await expect(createStravaConnection(stravaConnData))
+					.rejects
+					.toThrow();
 			});
 		});
 	});
@@ -108,7 +110,9 @@ describe('Strava service', () => {
 					expires_at: parseInt(new Date().getTime() / 1000) + 10
 				}
 
-				await expect(updateStravaConnection(user.id, updateData)).rejects.toThrow('Strava connection for user does not exist.');
+				await expect(updateStravaConnection(user.id, updateData))
+					.rejects
+					.toThrow('Strava connection for user does not exist.');
 			});
 
 			describe('when updating connection user who does not already have one', () => {
@@ -118,7 +122,9 @@ describe('Strava service', () => {
 						access_token: 'myNewAccessToken',
 						expires_at: parseInt(new Date().getTime() / 1000) + 10
 					};
-					await expect(updateStravaConnection(user.id, updateData)).rejects.toThrow('Strava connection for user does not exist.');
+					await expect(updateStravaConnection(user.id, updateData))
+						.rejects
+						.toThrow('Strava connection for user does not exist.');
 				});
 			});
 		});
@@ -137,7 +143,9 @@ describe('Strava service', () => {
 		describe('when deleting non-existing Strava connection', () => {
 			it('should throw an error', async () => {
 				const user = await generateNewUser();
-				await expect(deleteStravaConnection(user.id)).rejects.toThrow('Strava connection for user does not exist.');
+				await expect(deleteStravaConnection(user.id))
+					.rejects
+					.toThrow('Strava connection for user does not exist.');
 			});
 		});
 	});
@@ -154,7 +162,9 @@ describe('Strava service', () => {
 		describe('when Strava returns error', () => {
 			it('should throw an error', async () => {
 				mockAxios.post.mockRejectedValueOnce(new Error('Strava error'));
-				await expect(getClientToken('abc')).rejects.toThrow('Strava error');
+				await expect(getClientToken('abc'))
+					.rejects
+					.toThrow('Strava error');
 			});
 		});
 	});

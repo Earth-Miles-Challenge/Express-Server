@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('../../app');
+const { logger } = require('../../src/utils/logger.utils');
 const { initializeDatabase } = require('../utils/database');
 const {
 	generatePlatformId,
@@ -14,23 +15,23 @@ beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
 describe('/users/:id/activities route', () => {
 	describe('GET /users/:id/activities', () => {
 		describe('when fetching activities for existing user', () => {
-			it('should return a list of 20 activities by default', async () => {
+			it('should return a list of 30 activities by default', async () => {
 				const user = await generateNewUser({
 					activity_platform: 'strava',
 					activity_platform_id: generatePlatformId()
 				});
 				const token = getTokenForUser(user);
 
-				const activities = await generateUserActivities(25, user);
+				const activities = await generateUserActivities(35, user);
 
 				const res = await request(app)
 					.get(`/users/${user.id}/activities`)
 					.set('Authorization', 'Bearer ' + token);
 
 				expect(res.statusCode).toBe(200);
-				expect(res.body.length).toBe(20);
+				expect(res.body.length).toBe(30);
 				expect(res.body[0]).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(activities[0]))));
-				expect(res.body[19]).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(activities[19]))));
+				expect(res.body[29]).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(activities[29]))));
 			});
 
 			it('should return set number of activies when specified', async () => {
@@ -40,6 +41,14 @@ describe('/users/:id/activities route', () => {
 				});
 
 				const token = getTokenForUser(user);
+
+				const earlyCheck = await request(app)
+					.get(`/users/${user.id}/activities`)
+					.set('Authorization', 'Bearer ' + token);
+
+				expect(earlyCheck.statusCode).toBe(200);
+				expect(earlyCheck.body.length).toBe(0);
+
 				const expectedNumber = 10;
 
 				const activities = await generateUserActivities(25, user);
@@ -52,6 +61,11 @@ describe('/users/:id/activities route', () => {
 				expect(res.body.length).toBe(expectedNumber);
 				expect(res.body[0]).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(activities[0]))));
 				expect(res.body[9]).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(activities[9]))));
+
+				logger.info('Activities');
+				logger.info(activities);
+				logger.info('Response');
+				logger.info(res.body);
 			});
 		});
 

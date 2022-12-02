@@ -50,13 +50,13 @@ CREATE TABLE IF NOT EXISTS "activity" (
   "distance" FLOAT,
   "start_latlng" VARCHAR,
   "end_latlng" VARCHAR,
-  "activity_polyline" TEXT,
+  "map_polyline" TEXT,
   "commute" BOOLEAN
   UNIQUE ("activity_platform", "activity_platform_activity_id")
 );
 
 CREATE TABLE IF NOT EXISTS "activity_impact" (
-  "activity_id" REFERENCES "activity" (id) ON DELETE CASCADE,
+  "activity_id" INT REFERENCES "activity" (id) ON DELETE CASCADE,
   "fossil_alternative_distance" FLOAT,
   "fossil_alternative_polyline" TEXT,
   "fossil_alternative_co2" INTEGER

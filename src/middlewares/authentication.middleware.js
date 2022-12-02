@@ -20,9 +20,7 @@ function authenticateToken(req, res, next) {
 
 function userHasAuthorization(req, res, next) {
 	if (!req.authenticatedUser) return res.sendStatus(403);
-	logger.info(req.params);
 	const userId = parseInt(req.params.userId);
-	logger.info(req.params.userId);
 
 	if (!userId) return res.sendStatus(401);
 	if (userId !== req.authenticatedUser.id) return res.sendStatus(403);

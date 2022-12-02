@@ -15,7 +15,6 @@ async function get(req, res, next) {
 		const activities = await getActivities(req.user.id, req.query);
 		res.json(activities);
 	} catch (err) {
-		// err.status = getErrorStatus(err);
 		logger.debug(`Error when getting activities`, err.message);
 		next(err);
 	}

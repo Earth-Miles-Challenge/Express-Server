@@ -7,7 +7,12 @@ const {
  } = require('../../src/services/activities.service');
 const { initializeDatabase } = require('../utils/database');
 const { getComparisonActivityData } = require('../utils/comparison-data');
-const { generateNewUser, generateUserActivity, generateUserActivities } = require('../utils/fixture-generator');
+const {
+	generatePlatformActivityId,
+	generateNewUser,
+	generateUserActivity,
+	generateUserActivities
+} = require('../utils/fixture-generator');
 
 beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
 
@@ -19,12 +24,16 @@ describe('Activities service', () => {
 					"activity_type": "ride",
 					"description": "Ride to the shops",
 					"commute": true,
-					"co2_avoided_grams": 400
+					// "activity_impact": {
+					// 	"fossil_alternative_co2": 400
+					// }
 				};
 				const user = await generateNewUser();
 				const { id } = await generateUserActivity(user, activityData);
-				const activity = await getActivity(id);
-				expect(activity).toEqual(expect.objectContaining(activityData));
+
+				await expect(getActivity(id))
+					.resolves
+					.toEqual(expect.objectContaining(activityData));
 			});
 
 			it('should have returned date as correct Javascript Date object', async () => {
@@ -85,9 +94,9 @@ describe('Activities service', () => {
 					"start_date": "2017-09-06T22:48:15Z",
 				});
 
-				const activity = await getMostRecentActivity(user.id);
-
-				expect(activity).toEqual(expect.objectContaining(getComparisonActivityData(secondActivityData)));
+				await expect(getMostRecentActivity(user.id))
+					.resolves
+					.toEqual(expect.objectContaining(getComparisonActivityData(secondActivityData)));
 			});
 		});
 
@@ -184,7 +193,9 @@ describe('Activities service', () => {
 					commute: true,
 					start_latlng: '',
 					end_latlng: '',
-					co2_avoided_grams: 331
+					// activity_impact: {
+					// 	fossil_alternative_co2: 400
+					// }
 				};
 				const activity = await createActivity(activityData);
 
@@ -215,13 +226,17 @@ describe('Activities service', () => {
 					commute: true,
 					start_latlng: '',
 					end_latlng: '',
-					co2_avoided_grams: 331
+					// activity_impact: {
+					// 	fossil_alternative_co2: 331
+					// }
 				};
 
 				const baseArray = Object.entries(activityData);
 				const incompleteData = baseArray.filter((val, index) => baseArray[index][0] !== field);
 
-				await expect(createActivity(Object.fromEntries(incompleteData))).rejects.toThrow(`Missing required fields: ${field}`);
+				await expect(createActivity(Object.fromEntries(incompleteData)))
+					.rejects
+					.toThrow(`Missing required fields: ${field}`);
 			});
 		});
 
@@ -240,10 +255,14 @@ describe('Activities service', () => {
 					commute: true,
 					start_latlng: '',
 					end_latlng: '',
-					co2_avoided_grams: 331
+					// activity_impact: {
+					// 	fossil_alternative_co2: 331
+					// }
 				};
 
-				await expect(createActivity(activityData)).rejects.toThrow(`Invalid activity type: pogostick`);
+				await expect(createActivity(activityData))
+					.rejects
+					.toThrow(`Invalid activity type: pogostick`);
 			});
 		});
 
@@ -262,10 +281,36 @@ describe('Activities service', () => {
 					commute: true,
 					start_latlng: '',
 					end_latlng: '',
-					co2_avoided_grams: 331
+					// activity_impact: {
+					// 	fossil_alternative_co2: 331
+					// }
 				};
 
-				await expect(createActivity(activityData)).rejects.toThrow(`Invalid activity platform: myCustomPlatform`);
+				await expect(createActivity(activityData))
+					.rejects
+					.toThrow(`Invalid activity platform: myCustomPlatform`);
+			});
+		});
+
+		describe('when activity is created for non-existent user', () => {
+			it('should throw an error', async () => {
+				const activityData = {
+					user_id: 9999,
+					activity_type: 'run',
+					activity_platform: 'strava',
+					activity_platform_activity_id: generatePlatformActivityId(),
+					description: 'Ride to the shops',
+					start_date: '2022-11-23 12:14:00',
+					timezone: 'Australia/Darwin',
+					distance: 1723,
+					commute: true,
+					start_latlng: '',
+					end_latlng: '',
+				};
+
+				await expect(createActivity(activityData))
+					.rejects
+					.toThrow("insert or update on table \"activity\" violates foreign key constraint \"activity_user_id_fkey\"");
 			});
 		});
 	});
@@ -277,7 +322,9 @@ describe('Activities service', () => {
 				const { id } = await generateUserActivity(user);
 				const activityData = {
 					commute: true,
-					co2_avoided_grams: 200
+					// activity_impact: {
+					// 	fossil_alternative_co2: 200
+					// }
 				};
 				const activity = await updateActivity(id, activityData);
 
@@ -289,10 +336,14 @@ describe('Activities service', () => {
 			it('should throw an error', async () => {
 				const activityData = {
 					commute: true,
-					co2_avoided_grams: 200
+					// activity_impact: {
+					// 	fossil_alternative_co2: 200
+					// }
 				};
 
-				await expect(updateActivity(9999, activityData)).rejects.toThrow('Activity does not exist.');
+				await expect(updateActivity(9999, activityData))
+					.rejects
+					.toThrow('Activity does not exist.');
 			});
 		});
 
@@ -301,7 +352,9 @@ describe('Activities service', () => {
 				const user = await generateNewUser();
 				const { id } = await generateUserActivity(user);
 				const activityData = { is_commute: true };
-				await expect(updateActivity(id, activityData)).rejects.toThrow('Unknown column is_commute passed.');
+				await expect(updateActivity(id, activityData))
+					.rejects
+					.toThrow('Unknown column is_commute passed.');
 			});
 		});
 	});

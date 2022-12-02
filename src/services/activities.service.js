@@ -16,7 +16,7 @@ const getActivity = async (activityId) => {
 			commute,
 			start_latlng,
 			end_latlng,
-			co2_avoided_grams
+			map_polyline
 		FROM activity
 		WHERE id = $1`,
 		[activityId]
@@ -27,7 +27,6 @@ const getActivity = async (activityId) => {
 
 const getMostRecentActivity = async(userId) => {
 	const activities = await getActivities(userId, {number: 1});
-	logger.info(activities[0]);
 	return activities.length ? activities[0] : null;
 }
 
@@ -52,7 +51,7 @@ const getActivities = async (userId, searchParams = {}) => {
 			commute,
 			start_latlng,
 			end_latlng,
-			co2_avoided_grams
+			map_polyline
 		FROM activity
 		WHERE user_id = $1
 		ORDER BY start_date DESC
@@ -78,7 +77,7 @@ const createActivity = async (data) => {
 			commute,
 			start_latlng,
 			end_latlng,
-			co2_avoided_grams
+			map_polyline
 		)
 		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		RETURNING *`;
@@ -94,7 +93,7 @@ const createActivity = async (data) => {
 			data.commute,
 			data.start_latlng,
 			data.end_latlng,
-			data.co2_avoided_grams
+			data.map_polyline
 		];
 
 		const result = await db.query(sql, values);
@@ -197,7 +196,7 @@ const getColumnNames = () => [
 	'commute',
 	'start_latlng',
 	'end_latlng',
-	'co2_avoided_grams'
+	'map_polyline'
 ];
 const getSupportedActivityTypes = () => ['run', 'ride', 'walk'];
 const getSupportedPlatforms = () => ['strava']

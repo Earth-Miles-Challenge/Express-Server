@@ -8,11 +8,14 @@ const { logger } = require('../../src/utils/logger.utils');
  * @see https://node-postgres.com/features/transactions
  */
 const initializeDatabase = async () => {
+	logger.info('Initializing database for tests.');
+
 	const client = await getClient();
 	try {
 		await client.query('BEGIN');
-		await client.query(`TRUNCATE TABLE activity, strava_connection, strava_refresh_token, user_account;`);
+		await client.query(`TRUNCATE TABLE activity_impact, activity, strava_connection, strava_refresh_token, user_account;`);
 		await client.query(`ALTER SEQUENCE user_account_id_seq RESTART WITH 1;`);
+		await client.query(`ALTER SEQUENCE activity_id_seq RESTART WITH 1;`);
 		await client.query('COMMIT');
 	} catch (e) {
 		await client.query('ROLLBACK');
