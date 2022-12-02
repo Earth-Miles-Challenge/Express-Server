@@ -61,11 +61,6 @@ describe('/users/:id/activities route', () => {
 				expect(res.body.length).toBe(expectedNumber);
 				expect(res.body[0]).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(activities[0]))));
 				expect(res.body[9]).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(activities[9]))));
-
-				logger.info('Activities');
-				logger.info(activities);
-				logger.info('Response');
-				logger.info(res.body);
 			});
 		});
 
