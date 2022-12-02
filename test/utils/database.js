@@ -35,11 +35,14 @@ const closePool = () => {
 
 const getNextUserId = async () => {
 	try {
-		const userId = await db.query(`SELECT currval(pg_get_serial_sequence('user', 'id')) as currentid;`);
-		return parseInt(userId['rows'][0].currentid) + 1;
+		const userId = await db.query(`SELECT currval(pg_get_serial_sequence('user_account', 'id')) as currentid;`);
+		return parseInt(userId['rows'][0].currentid);
 	} catch (err) {
 		logger.error(err);
 	}
+
+	// Fallback in case currval is not yet set
+	return 1;
 }
 
 const populateUsers = async () => {

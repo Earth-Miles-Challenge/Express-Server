@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS "user_account" (
 
 CREATE TABLE IF NOT EXISTS "strava_connection" (
   "user_id" INT REFERENCES "user_account" (id) ON DELETE CASCADE,
-  "strava_id" INT,
+  "strava_id" VARCHAR(128),
   "expires_at" INT,
   "expires_in" INT,
   "access_token" VARCHAR,

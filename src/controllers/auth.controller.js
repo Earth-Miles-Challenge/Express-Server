@@ -22,7 +22,7 @@ async function authenticateStrava(req, res, next) {
 	if (!req.query || !req.query.code || !req.query.scope) {
 		const err = new Error('Missing parameters for Strava authentication.');
 		err.status = 400;
-		next(err);
+		return next(err);
 	}
 
 	const scope = parseScope(req.query.scope);
@@ -38,6 +38,7 @@ async function authenticateStrava(req, res, next) {
 				'activity_platform': 'strava',
 				'activity_platform_id': response.athlete.id
 			};
+
 			const existingUser = await getUserByPlatformId('strava', response.athlete.id)
 			const user = !existingUser
 				? await createUser(userData)

@@ -6,11 +6,16 @@ const { oAuthTokenResponse } = require('../../__fixtures__/strava');
 const { getEnvVariable } = require('../../src/utils/env.utils');
 const { verifyAccessToken } = require('../../src/services/authentication.service');
 const { getUser } = require('../../src/services/users.service');
-const { createStravaConnectionDetails, getStravaConnectionDetails } = require('../../src/services/strava.service');
-const { initializeDatabase } = require('../utils/database');
+const {
+	createStravaConnection,
+	getStravaConnection } = require('../../src/services/strava.service');
+const {
+	initializeDatabase,
+	getNextUserId } = require('../utils/database');
 const { generateNewUser } = require('../utils/fixture-generator');
+const { logger } = require('../../src/utils/logger.utils');
 
-beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
+beforeEach(() => initializeDatabase().catch(e => console.error(e.stack)));
 beforeEach(() => mockAxios.post.mockClear());
 
 describe('GET /auth/strava', () => {
@@ -28,6 +33,8 @@ describe('GET /auth/strava', () => {
 					client_secret: getEnvVariable('STRAVA_CLIENT_SECRET'),
 					code,
 					grant_type: 'authorization_code'
+				}, {
+					headers: { 'Accept-Encoding': 'application/json' }
 				}
 			);
 		});
@@ -36,16 +43,14 @@ describe('GET /auth/strava', () => {
 			mockAxios.post.mockResolvedValueOnce(oAuthTokenResponse);
 
 			const expectedUser = {
-				first_name: oAuthTokenResponse.data.athlete.firstname,
-				last_name: oAuthTokenResponse.data.athlete.lastname,
-				profile_photo: oAuthTokenResponse.data.athlete.profile,
-				activity_platform: 'strava'
+				id: await getNextUserId()
 			};
 
 			const code = '123456';
 			const res = await request(app)
 				.get(`/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
 
+			// logger.debug(res);
 			expect(res.statusCode).toBe(200);
 
 			// Check that the cookie is set
@@ -62,7 +67,7 @@ describe('GET /auth/strava', () => {
 			expect(user).toEqual(expect.objectContaining(expectedUser));
 
 			// Check that the Strava connection details exist
-			const stravaConn = await getStravaConnectionDetails(decodedToken.id);
+			const stravaConn = await getStravaConnection(decodedToken.id);
 			expect(stravaConn).not.toBeFalsy();
 		});
 
@@ -74,7 +79,7 @@ describe('GET /auth/strava', () => {
 				activity_platform_id: oAuthTokenResponse.data.athlete.id
 			});
 
-			const oldStravaConn = await createStravaConnectionDetails({
+			const oldStravaConn = await createStravaConnection({
 				user_id: user.id,
 				strava_id: oAuthTokenResponse.data.athlete.id,
 				expires_at: 20000000,
@@ -94,7 +99,7 @@ describe('GET /auth/strava', () => {
 			// Check that the decoded token has the new Strava details
 			const token = cookies[0].match(/token=(.*); Domain/)[1]
 			const decodedToken = verifyAccessToken(token);
-			const newStravaConn = await getStravaConnectionDetails(decodedToken.id);
+			const newStravaConn = await getStravaConnection(decodedToken.id);
 			expect(newStravaConn).not.toEqual(oldStravaConn);
 		});
 	});
@@ -117,6 +122,8 @@ describe('GET /auth/strava', () => {
 					client_secret: getEnvVariable('STRAVA_CLIENT_SECRET'),
 					code,
 					grant_type: 'authorization_code'
+				}, {
+					headers: { 'Accept-Encoding': 'application/json' }
 				}
 			);
 

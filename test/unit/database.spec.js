@@ -3,7 +3,13 @@ const db = require('../../src/services/database.service');
 describe('Database service', () => {
 	describe('All tables exist', () => {
 		it('the users table exists', async () => {
-			const expected = ['users', 'strava_connection', 'activities'].map((table) => {
+			const expected = [
+				'user_account',
+				'strava_connection',
+				'strava_refresh_token',
+				'activity',
+				'activity_impact',
+			].map((table) => {
 				return {tablename: table}
 			});
 

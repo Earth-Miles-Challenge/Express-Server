@@ -12,9 +12,7 @@ const {
 const {
 	getComparisonUserData } = require('../utils/comparison-data');
 
-beforeAll(async () => {
-	await initializeDatabase().catch(e => console.error(e.stack));
-});
+beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
 
 describe('/users route', () => {
 	describe('GET /users/', () => {
