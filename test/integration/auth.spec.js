@@ -2,26 +2,46 @@ const request = require('supertest');
 const axios = require('axios');
 const app = require('../../app');
 const mockAxios = require('../../__mocks__/axios');
-const { oAuthTokenResponse } = require('../../__fixtures__/strava');
-const { getEnvVariable } = require('../../src/utils/env.utils');
-const { verifyAccessToken } = require('../../src/services/authentication.service');
-const { getUser } = require('../../src/services/users.service');
+const {
+	oAuthTokenResponse
+} = require('../../__fixtures__/strava');
+
+const {
+	getEnvVariable
+} = require('../../src/utils/env.utils');
+
+const {
+	verifyAccessToken
+} = require('../../src/services/authentication.service');
+
+const {
+	getUser
+} = require('../../src/services/users.service');
+
 const {
 	createStravaConnection,
-	getStravaConnection } = require('../../src/services/strava.service');
-const {
-	initializeDatabase,
-	getNextUserId } = require('../utils/database');
-const { generateNewUser } = require('../utils/fixture-generator');
-const { logger } = require('../../src/utils/logger.utils');
+	getStravaConnection
+} = require('../../src/services/strava.service');
 
-beforeEach(() => initializeDatabase().catch(e => console.error(e.stack)));
+const {
+	getLastUserId
+} = require('../utils/database');
+
+const {
+	generateNewUser,
+	generatePlatformActivityId,
+} = require('../utils/fixture-generator');
+
+const {
+	logger
+} = require('../../src/utils/logger.utils');
+
 beforeEach(() => mockAxios.post.mockClear());
 
 describe('GET /auth/strava', () => {
 	describe('when code and scope are set and API request succeeds', () => {
 		it('should make Strava OAuth Token request', async () => {
-			mockAxios.post.mockResolvedValueOnce(oAuthTokenResponse);
+			mockAxios.post.mockResolvedValue(oAuthTokenResponse);
 			const code = '123456';
 			await request(app)
 				.get(`/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
@@ -40,22 +60,22 @@ describe('GET /auth/strava', () => {
 		});
 
 		it('should have cookie set to token containing user object for new user', async () => {
-			mockAxios.post.mockResolvedValueOnce(oAuthTokenResponse);
-
-			const expectedUser = {
-				id: await getNextUserId()
-			};
+			mockAxios.post.mockResolvedValue(oAuthTokenResponse);
 
 			const code = '123456';
 			const res = await request(app)
 				.get(`/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
 
-			// logger.debug(res);
 			expect(res.statusCode).toBe(200);
 
 			// Check that the cookie is set
 			const cookies = res.headers['set-cookie'];
 			expect(cookies).toEqual(expect.objectContaining(/token=.*/));
+
+			// Get the most recently added user
+			const expectedUser = {
+				id: await getLastUserId()
+			};
 
 			// Check that the decoded token has the data we expect
 			const token = cookies[0].match(/token=(.*); Domain/)[1]
@@ -72,16 +92,18 @@ describe('GET /auth/strava', () => {
 		});
 
 		it('should have cookie set to token containing user object for updated user', async () => {
-			mockAxios.post.mockResolvedValueOnce(oAuthTokenResponse);
+			mockAxios.post.mockResolvedValue(oAuthTokenResponse);
+
+			const activityPlatformId = await generatePlatformActivityId();
 
 			const user = await generateNewUser({
 				activity_platform: 'strava',
-				activity_platform_id: oAuthTokenResponse.data.athlete.id
+				activity_platform_id: activityPlatformId
 			});
 
 			const oldStravaConn = await createStravaConnection({
 				user_id: user.id,
-				strava_id: oAuthTokenResponse.data.athlete.id,
+				strava_id: activityPlatformId,
 				expires_at: 20000000,
 				expires_in: 21600,
 				refresh_token: 'tobechanged',
@@ -109,7 +131,7 @@ describe('GET /auth/strava', () => {
 			const error = new Error('Network error from Strava API');
 			error.status = 503;
 
-			axios.post.mockRejectedValueOnce(error);
+			axios.post.mockRejectedValue(error);
 
 			const code = '123456';
 			const res = await request(app)

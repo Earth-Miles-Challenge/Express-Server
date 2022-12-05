@@ -1,5 +1,4 @@
-const { closePool } = require('../utils/database');
+const { closePool, initializeDatabase } = require('../utils/database');
 
-// beforeEach(initializeDatabase);
-// afterEach(clearDatabase);
-afterAll(closePool);
+beforeAll(async () => await initializeDatabase().catch(e => console.error(e.stack)));
+afterAll(async () => await closePool());

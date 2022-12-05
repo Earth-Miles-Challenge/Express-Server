@@ -10,7 +10,7 @@ const {
 	generateUserActivities
 } = require('../utils/fixture-generator');
 
-beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
+// beforeEach(async () => await initializeDatabase().catch(e => console.error(e.stack)));
 
 describe('/users/:id/activities route', () => {
 	describe('GET /users/:id/activities', () => {

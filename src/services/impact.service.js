@@ -3,9 +3,13 @@ const { logger } = require('../utils/logger.utils');
 
 const getEmissionsAvoidedByUser = async (userId, args = {}) => {
 	const result = await db.query(`
-		SELECT COALESCE(SUM(fossil_alternative_co2), 0) AS sum
-		FROM activity, activity_impact
-		WHERE user_id = $1`,
+		SELECT
+			COALESCE(SUM(fossil_alternative_co2), 0) AS sum
+		FROM
+			activity_impact
+			JOIN activity ON activity_impact.activity_id = activity.id
+		WHERE
+			activity.user_id = $1`,
 		[userId]
 	);
 

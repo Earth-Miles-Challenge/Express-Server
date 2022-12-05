@@ -1,5 +1,7 @@
 const mockAxios = require('../../__mocks__/axios');
 const stravaMocks = require('../../__fixtures__/strava');
+const db = require('../../src/services/database.service');
+
 const {
 	getStravaConnection,
 	createStravaConnection,
@@ -10,20 +12,23 @@ const {
 	getAthleteActivities,
 	createActivityFromStravaActivity,
 	parseTimezone,
-	parseScope} = require('../../src/services/strava.service');
+	parseScope
+} = require('../../src/services/strava.service');
+
 const {
 	generateNewUser,
 	generatePlatformId,
 	getStravaConnectionData,
-	generateStravaConnectionForUser } = require('../utils/fixture-generator');
+	generateStravaConnectionForUser
+} = require('../utils/fixture-generator');
+
 const {
-	getClient,
-	initializeDatabase } = require('../utils/database');
-const { getComparisonStravaConnData } = require('../utils/comparison-data');
+	getComparisonStravaConnData
+} = require('../utils/comparison-data');
 
-const { logger } = require('../../src/utils/logger.utils');
-
-beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
+const {
+	logger
+} = require('../../src/utils/logger.utils');
 
 describe('Strava service', () => {
 	describe('getStravaConnection', () => {
@@ -102,8 +107,7 @@ describe('Strava service', () => {
 				await generateStravaConnectionForUser(user);
 
 				// Delete the user
-				const client = await getClient();
-				await client.query(`DELETE FROM user_account WHERE id = $1`, [user.id]);
+				db.query(`DELETE FROM user_account WHERE id = $1`, [user.id]);
 
 				const updateData = {
 					access_token: 'myNewAccessToken',
@@ -153,7 +157,7 @@ describe('Strava service', () => {
 	describe('getClientToken', () => {
 		describe('when Strava returns successfully', () => {
 			it('should return data', async () => {
-				mockAxios.post.mockResolvedValueOnce(stravaMocks.oAuthTokenResponse);
+				mockAxios.post.mockResolvedValue(stravaMocks.oAuthTokenResponse);
 				const response = await getClientToken('abc');
 				expect(response).toEqual(expect.objectContaining(stravaMocks.oAuthTokenResponse.data));
 			});
@@ -183,7 +187,7 @@ describe('Strava service', () => {
 
 		describe('when access token has expired', () => {
 			it('should return a new access token', async () => {
-				mockAxios.post.mockResolvedValueOnce(stravaMocks.oAuthTokenResponse);
+				mockAxios.post.mockResolvedValue(stravaMocks.oAuthTokenResponse);
 				const user = await generateNewUser();
 				const originalStravaConn = await generateStravaConnectionForUser(user, {
 					expires_at: parseInt(new Date().getTime() / 1000) - 1000,
@@ -201,7 +205,7 @@ describe('Strava service', () => {
 	xdescribe('getAthleteActivities', () => {
 		describe('when ...', () => {
 			it('should ...', async () => {
-				mockAxios.get.mockResolvedValueOnce(stravaMocks.oAuthTokenResponse);
+				mockAxios.get.mockResolvedValue(stravaMocks.oAuthTokenResponse);
 				expect(false).toBeTruthy();
 			});
 		});

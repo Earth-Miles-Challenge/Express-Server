@@ -1,25 +1,22 @@
 const request = require('supertest');
 const app = require('../../app');
+const db = require('../../src/services/database.service');
 const {
 	generatePlatformId,
 	generateEmail,
 	generateNewUser,
 	getTokenForUser } = require('../utils/fixture-generator');
 const {
-	initializeDatabase,
-	getClient,
 	populateUsers } = require('../utils/database');
 const {
 	getComparisonUserData } = require('../utils/comparison-data');
 
-beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
+beforeAll(async () => await populateUsers());
 
 describe('/users route', () => {
 	describe('GET /users/', () => {
 		describe('when fetching users without query params', () => {
 			it('should return a list of 20 users', async () => {
-				await populateUsers();
-
 				const res = await request(app)
 					.get('/users');
 
@@ -30,8 +27,6 @@ describe('/users route', () => {
 
 		describe('when fetching users with number param', () => {
 			it('should return the correct number of users', async () => {
-				await populateUsers();
-
 				const numberOfUsers = 12;
 				const res = await request(app)
 					.get(`/users?number=${numberOfUsers}`);
@@ -43,8 +38,6 @@ describe('/users route', () => {
 
 		describe('when fetching users with number and page params', () => {
 			it('should return users offset by number of pages', async () => {
-				await populateUsers();
-
 				const numberOfUsers = 10;
 				const res = await request(app)
 					.get(`/users?number=${numberOfUsers}&page=2`);
@@ -81,8 +74,7 @@ describe('/users route', () => {
 				const token = getTokenForUser(newUser)
 
 				// Delete the user
-				const client = await getClient();
-				await client.query(`DELETE FROM user_account WHERE id = $1`, [newUser.id]);
+				db.query(`DELETE FROM user_account WHERE id = $1`, [newUser.id]);
 
 				// Test
 				const res = await request(app)
@@ -189,8 +181,7 @@ describe('/users route', () => {
 				const user = await generateNewUser();
 
 				// Delete the user
-				const client = await getClient();
-				await client.query(`DELETE FROM user_account WHERE id = $1`, [user.id]);
+				db.query(`DELETE FROM user_account WHERE id = $1`, [user.id]);
 
 				const res = await request(app)
 					.put(`/users/${user.id}`)
@@ -279,8 +270,7 @@ describe('/users route', () => {
 			const user = await generateNewUser();
 
 			// Delete the user
-			const client = await getClient();
-			await client.query(`DELETE FROM user_account WHERE id = $1`, [user.id]);
+			db.query(`DELETE FROM user_account WHERE id = $1`, [user.id]);
 
 			const res = await request(app)
 				.delete(`/users/${user.id}`)

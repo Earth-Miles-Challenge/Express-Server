@@ -13,7 +13,7 @@ const {
 	generateNewUser,
 } = require('../utils/fixture-generator');
 
-beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
+// beforeEach(async () => await initializeDatabase().catch(e => console.error(e.stack)));
 
 describe('ActivityImpact Service', () => {
 	describe('getActivityImpact', () => {

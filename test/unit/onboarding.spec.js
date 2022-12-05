@@ -8,7 +8,7 @@ const {
 	generatePlatformId} = require('../utils/fixture-generator');
 const { logger } = require('../../src/utils/logger.utils');
 
-beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
+// beforeEach(async () => await initializeDatabase().catch(e => console.error(e.stack)));
 
 describe('Onboarding service', () => {
 	describe('onboardUser', () => {
@@ -28,7 +28,7 @@ describe('Onboarding service', () => {
 	describe('onboardStravaUser', () => {
 		describe('when onboarding user with 6 runs, 2 rides, 1 walk and 1 swim', () => {
 			it('should have processed 10 activities and created 9', async () => {
-				mockAxios.get.mockResolvedValueOnce(activitiesResponse);
+				mockAxios.get.mockResolvedValue(activitiesResponse);
 
 				const user = await generateNewUser({
 					activity_platform: 'strava',
@@ -44,7 +44,7 @@ describe('Onboarding service', () => {
 
 		describe('when onboarding with no activities', () => {
 			it('should have processed 0 activities and created 0', async () => {
-				mockAxios.get.mockResolvedValueOnce({data:[]});
+				mockAxios.get.mockResolvedValue({data:[]});
 
 				const user = await generateNewUser({
 					activity_platform: 'strava',

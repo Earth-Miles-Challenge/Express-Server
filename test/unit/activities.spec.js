@@ -5,16 +5,17 @@ const {
 	createActivity,
 	updateActivity
  } = require('../../src/services/activities.service');
-const { initializeDatabase } = require('../utils/database');
-const { getComparisonActivityData } = require('../utils/comparison-data');
+
+const {
+	getComparisonActivityData
+} = require('../utils/comparison-data');
+
 const {
 	generatePlatformActivityId,
 	generateNewUser,
 	generateUserActivity,
 	generateUserActivities
 } = require('../utils/fixture-generator');
-
-beforeAll(() => initializeDatabase().catch(e => console.error(e.stack)));
 
 describe('Activities service', () => {
 	describe('getActivity', () => {
@@ -118,7 +119,7 @@ describe('Activities service', () => {
 				const lastActivity = { "activity_type": "ride", "description": "Last Ride", "start_date": "2022-02-22 11:00:00" };
 
 				await generateUserActivity(user, firstActivity);
-				await generateUserActivities(30, user, defaultActivity );
+				await generateUserActivities(30, user, defaultActivity, false);
 				await generateUserActivity(user, lastActivity);
 
 				const activities = await getActivities(user.id);
@@ -137,7 +138,7 @@ describe('Activities service', () => {
 				const lastActivity = { "activity_type": "ride", "description": "Last Ride", "start_date": "2022-02-22 11:00:00" };
 
 				await generateUserActivity(user, firstActivity);
-				await generateUserActivities(10, user, defaultActivity );
+				await generateUserActivities(10, user, defaultActivity, false);
 				await generateUserActivity(user, lastActivity);
 
 				const activities = await getActivities(user.id, {number: 10});
@@ -156,7 +157,7 @@ describe('Activities service', () => {
 				const lastActivity = { "activity_type": "ride", "description": "Last Ride", "start_date": "2022-02-22 11:00:00" };
 
 				await generateUserActivity(user, firstActivity);
-				await generateUserActivities(10, user, defaultActivity );
+				await generateUserActivities(10, user, defaultActivity, false);
 				await generateUserActivity(user, lastActivity);
 
 				const activities = await getActivities(user.id, {number: 6, page: 2});
