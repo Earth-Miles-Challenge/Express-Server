@@ -132,6 +132,8 @@ const updateActivity = async (activityId, newData) => {
 	if (validate(Object.assign(existingData, newData))) {
 		const validColumns = getColumnNames();
 		const [updateSql, n, updateValues] = Object.keys(newData).reduce(([sql, n, values], column) => {
+			if (column === 'activity_impact') return [ [sql], n, [values] ];
+
 			if (!validColumns.includes(column)) {
 				const err = new Error(`Unknown column ${column} passed.`);
 				err.name = 'invalidColumn';
@@ -151,7 +153,11 @@ const updateActivity = async (activityId, newData) => {
 					RETURNING *`;
 
 		const result = await db.query(sql, [...updateValues, activityId]);
-		const impact = await getActivityImpact(activityId);
+
+		const impact = newData.activity_impact
+			? await updateActivityImpact(activityId, newData.activity_impact)
+			: await getActivityImpact(activityId);
+
 		return {
 			...result.rows[0],
 			activity_impact: impact.fossil_alternative_distance
