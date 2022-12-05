@@ -4,9 +4,7 @@ const fetch = require('node-fetch');
 const { logger } = require('../utils/logger.utils');
 const { getEnvVariable } = require('../utils/env.utils');
 const { createActivity } = require('./activities.service');
-
-// http://localhost:3000/?state=http%3A%2F%2Flocalhost%3A3000%2F&code=8d5bb979e7253195cbfe507f40133f650f55a53b&scope=read
-// http://localhost:3000/?state=http%3A%2F%2Flocalhost%3A3000%2F&code=37c97ed058b7fc0281472712169483744faed4c3&scope=read,activity:write,activity:read_all,profile:read_all
+const { createActivityImpact } = require('./activity-impact.service');
 
 const getStravaConnection = async (userId) => {
 	const result = await db.query(`SELECT * FROM strava_connection WHERE user_id = $1`, [userId]);
@@ -276,15 +274,26 @@ const createActivityFromStravaActivity = async (userId, activityData) => {
 		start_date,
 		timezone: parseTimezone(activityData.timezone),
 		distance,
-		commute,
 		start_latlng,
 		end_latlng,
-		co2_avoided_grams: getEmissionsAvoidedForActivity(activityData)
+		map_polyline: activityData.map.summary_polyline,
+		commute,
 	}
 
 	const activity = await createActivity(data);
+	const createImpact = async (activity) => {
+		if (!activity.commute) return null;
+		return await createActivityImpact({
+			activity_id: activity.id,
+			fossil_alternative_distance: activity.distance,
+			fossil_alternative_co2: getEmissionsAvoidedForActivity(activity)
+		})
+	}
 
-	return activity;
+	return {
+		...activity,
+		activity_impact: await createImpact(activity)
+	};
 }
 
 const getActivityType = (activity) => {
@@ -299,6 +308,11 @@ const getActivityType = (activity) => {
 	}
 }
 
+/**
+ * Get the estimated number of grams of co2 avoided by the activity.
+ * @param {object} activity
+ * @returns int
+ */
 const getEmissionsAvoidedForActivity = (activity) => {
 	if (!activity.commute) return 0;
 
