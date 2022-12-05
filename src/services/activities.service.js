@@ -1,5 +1,7 @@
 const db = require('./database.service');
 const { logger } = require('../utils/logger.utils');
+const { getFilteredObject } = require('../utils/object.utils');
+const { createActivityImpact, getActivityImpact } = require('./activity-impact.service');
 
 const getActivity = async (activityId) => {
 	const result = await db.query(`
@@ -16,13 +18,18 @@ const getActivity = async (activityId) => {
 			commute,
 			start_latlng,
 			end_latlng,
-			map_polyline
-		FROM activity
+			map_polyline,
+			activity_impact.fossil_alternative_distance,
+			activity_impact.fossil_alternative_polyline,
+			activity_impact.fossil_alternative_co2
+		FROM
+			activity
+			LEFT JOIN activity_impact ON activity.id = activity_impact.activity_id
 		WHERE id = $1`,
 		[activityId]
 	);
 
-	return result.rows.length ? result.rows[0] : null;
+	return result.rows.length ? getActivityResponseObject(result.rows[0]) : null;
 }
 
 const getMostRecentActivity = async(userId) => {
@@ -51,8 +58,13 @@ const getActivities = async (userId, searchParams = {}) => {
 			commute,
 			start_latlng,
 			end_latlng,
-			map_polyline
-		FROM activity
+			map_polyline,
+			activity_impact.fossil_alternative_distance,
+			activity_impact.fossil_alternative_polyline,
+			activity_impact.fossil_alternative_co2
+		FROM
+			activity
+			LEFT JOIN activity_impact ON activity.id = activity_impact.activity_id
 		WHERE user_id = $1
 		ORDER BY start_date DESC
 		LIMIT $2
@@ -60,7 +72,7 @@ const getActivities = async (userId, searchParams = {}) => {
 		[userId, number, pageOffset]
 	);
 
-	return result.rows;
+	return result.rows.map(getActivityResponseObject);
 }
 
 const createActivity = async (data) => {
@@ -97,7 +109,14 @@ const createActivity = async (data) => {
 		];
 
 		const result = await db.query(sql, values);
-		return result.rows[0];
+		const impact = data.activity_impact
+			? await createActivityImpact(data.activity_impact)
+			: null;
+
+		return {
+			...result.rows[0],
+			activity_impact: getFilteredObject(impact, ([key]) => key !== 'activity_id')
+		};
 	}
 }
 
@@ -132,7 +151,13 @@ const updateActivity = async (activityId, newData) => {
 					RETURNING *`;
 
 		const result = await db.query(sql, [...updateValues, activityId]);
-		return result.rows[0];
+		const impact = await getActivityImpact(activityId);
+		return {
+			...result.rows[0],
+			activity_impact: impact.fossil_alternative_distance
+				? getFilteredObject(impact, ([key]) => key !== 'activity_id')
+				: null
+		};
 	}
 }
 
@@ -201,6 +226,24 @@ const getColumnNames = () => [
 const getSupportedActivityTypes = () => ['run', 'ride', 'walk'];
 const getSupportedPlatforms = () => ['strava']
 
+const getActivityResponseObject = (activityData) => {
+	const impactFields = [
+		'fossil_alternative_distance',
+		'fossil_alternative_polyline',
+		'fossil_alternative_co2'
+	];
+	return {
+		...getFilteredObject(activityData, ([key]) => {
+			return !impactFields.includes(key)
+		}),
+		activity_impact: activityData.fossil_alternative_distance
+			? getFilteredObject(activityData, ([key]) => {
+				return impactFields.includes(key)
+			})
+			: null
+	}
+}
+
 module.exports = {
 	getActivity,
 	getMostRecentActivity,
@@ -208,5 +251,6 @@ module.exports = {
 	createActivity,
 	updateActivity,
 	getSupportedActivityTypes,
-	getSupportedPlatforms
+	getSupportedPlatforms,
+	getActivityResponseObject
 }

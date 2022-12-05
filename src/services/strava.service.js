@@ -278,22 +278,15 @@ const createActivityFromStravaActivity = async (userId, activityData) => {
 		end_latlng,
 		map_polyline: activityData.map.summary_polyline,
 		commute,
+		activity_impact: activity.commute
+			? {
+				fossil_alternative_distance: activityData.distance,
+				fossil_alternative_co2: getEmissionsAvoidedForActivity(activityData)
+			}
+			: null
 	}
 
-	const activity = await createActivity(data);
-	const createImpact = async (activity) => {
-		if (!activity.commute) return null;
-		return await createActivityImpact({
-			activity_id: activity.id,
-			fossil_alternative_distance: activity.distance,
-			fossil_alternative_co2: getEmissionsAvoidedForActivity(activity)
-		})
-	}
-
-	return {
-		...activity,
-		activity_impact: await createImpact(activity)
-	};
+	return await createActivity(data);
 }
 
 const getActivityType = (activity) => {

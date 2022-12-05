@@ -1,3 +1,5 @@
+const { getFilteredObject } = require("../../src/utils/object.utils");
+
 const getComparisonActivityData = (activityData) => {
 	if (!activityData.start_date) return activityData;
 
@@ -17,8 +19,7 @@ const getComparisonUserData = (userData) => {
 }
 
 const getComparisonStravaConnData = (stravaConnData) => {
-	const filteredData = Object.entries(stravaConnData).filter(([key]) => key !== 'refresh_token');
-	return Object.fromEntries(filteredData);
+	return getFilteredObject(stravaConnData, ([key]) => key !== 'refresh_token');
 }
 
 module.exports = {
