@@ -1,7 +1,18 @@
 const db = require('./database.service');
-const { logger } = require('../utils/logger.utils');
-const { getFilteredObject } = require('../utils/object.utils');
-const { createActivityImpact, getActivityImpact } = require('./activity-impact.service');
+
+const {
+	logger
+} = require('../utils/logger.utils');
+
+const {
+	getFilteredObject
+} = require('../utils/object.utils');
+
+const {
+	createActivityImpact,
+	upcreateActivityImpact,
+	getActivityImpact
+} = require('./activity-impact.service');
 
 const getActivity = async (activityId) => {
 	const result = await db.query(`
@@ -110,12 +121,17 @@ const createActivity = async (data) => {
 
 		const result = await db.query(sql, values);
 		const impact = data.activity_impact
-			? await createActivityImpact(data.activity_impact)
+			? await createActivityImpact({
+				...data.activity_impact,
+				activity_id: result.rows[0].id,
+			})
 			: null;
 
 		return {
 			...result.rows[0],
-			activity_impact: getFilteredObject(impact, ([key]) => key !== 'activity_id')
+			activity_impact: impact !== null
+				? getFilteredObject(impact, ([key]) => key !== 'activity_id')
+				: null
 		};
 	}
 }
@@ -132,7 +148,7 @@ const updateActivity = async (activityId, newData) => {
 	if (validate(Object.assign(existingData, newData))) {
 		const validColumns = getColumnNames();
 		const [updateSql, n, updateValues] = Object.keys(newData).reduce(([sql, n, values], column) => {
-			if (column === 'activity_impact') return [ [sql], n, [values] ];
+			if (column === 'activity_impact') return [ [...sql], n, [...values] ];
 
 			if (!validColumns.includes(column)) {
 				const err = new Error(`Unknown column ${column} passed.`);
@@ -146,21 +162,22 @@ const updateActivity = async (activityId, newData) => {
 				[...values, newData[column]]
 			];
 		}, [[], 1, []]);
-
+		logger.info('updateActivityImpact');
+		logger.info(updateSql);
+		logger.info(updateValues);
 		const sql = `UPDATE activity
 					SET ${updateSql.join(',')}
 					WHERE id = $${n}
 					RETURNING *`;
 
 		const result = await db.query(sql, [...updateValues, activityId]);
-
 		const impact = newData.activity_impact
-			? await updateActivityImpact(activityId, newData.activity_impact)
+			? await upcreateActivityImpact(activityId, newData.activity_impact)
 			: await getActivityImpact(activityId);
 
 		return {
 			...result.rows[0],
-			activity_impact: impact.fossil_alternative_distance
+			activity_impact: impact !== null
 				? getFilteredObject(impact, ([key]) => key !== 'activity_id')
 				: null
 		};

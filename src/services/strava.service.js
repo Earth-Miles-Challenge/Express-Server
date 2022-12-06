@@ -278,7 +278,7 @@ const createActivityFromStravaActivity = async (userId, activityData) => {
 		end_latlng,
 		map_polyline: activityData.map.summary_polyline,
 		commute,
-		activity_impact: activity.commute
+		activity_impact: activityData.commute
 			? {
 				fossil_alternative_distance: activityData.distance,
 				fossil_alternative_co2: getEmissionsAvoidedForActivity(activityData)

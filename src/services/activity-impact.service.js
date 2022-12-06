@@ -37,18 +37,10 @@ const createActivityImpact = async (data) => {
 		const result = await db.query(sql, values);
 		return result.rows[0];
 	}
-	/*
-	data : {
-		activity_id: activity.id,
-		fossil_alternative_distance: 2000,
-		fossil_alternative_polyline: "myPolyline",
-		fossil_alternative_co2: 384
-	}
-	*/
-
 }
 
 const updateActivityImpact = async (activityId, newData) => {
+	logger.info('updateActivityImpact');
 	const existingData = await getActivityImpact(activityId);
 
 	if (!existingData) {
@@ -73,6 +65,9 @@ const updateActivityImpact = async (activityId, newData) => {
 			];
 		}, [[], 1, []]);
 
+
+		logger.info(updateSql);
+		logger.info(updateValues);
 		const sql = `UPDATE activity_impact
 					SET ${updateSql.join(',')}
 					WHERE activity_id = $${n}
@@ -81,6 +76,16 @@ const updateActivityImpact = async (activityId, newData) => {
 		const result = await db.query(sql, [...updateValues, activityId]);
 		return result.rows[0];
 	}
+}
+
+const upcreateActivityImpact = async (activityId, newData) => {
+	const exists = await getActivityImpact(activityId);
+	return exists
+		? await updateActivityImpact(activityId, newData)
+		: await createActivityImpact({
+			...newData,
+			activity_id: activityId
+		});
 }
 
 const deleteActivityImpact = async (activityId) => {
@@ -141,5 +146,6 @@ module.exports = {
 	getActivityImpact,
 	createActivityImpact,
 	updateActivityImpact,
+	upcreateActivityImpact,
 	deleteActivityImpact,
 }

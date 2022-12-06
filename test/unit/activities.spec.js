@@ -7,6 +7,10 @@ const {
  } = require('../../src/services/activities.service');
 
 const {
+	getFilteredObject
+} = require('../../src/utils/object.utils');
+
+const {
 	getComparisonActivityData
 } = require('../utils/comparison-data');
 
@@ -25,9 +29,6 @@ describe('Activities service', () => {
 					"activity_type": "ride",
 					"description": "Ride to the shops",
 					"commute": true,
-					// "activity_impact": {
-					// 	"fossil_alternative_co2": 400
-					// }
 				};
 				const user = await generateNewUser();
 				const { id } = await generateUserActivity(user, activityData);
@@ -194,9 +195,11 @@ describe('Activities service', () => {
 					commute: true,
 					start_latlng: '',
 					end_latlng: '',
-					// activity_impact: {
-					// 	fossil_alternative_co2: 400
-					// }
+					activity_impact: {
+						fossil_alternative_distance: 2083,
+						fossil_alternative_co2: 400,
+						fossil_alternative_polyline: '',
+					}
 				};
 				const activity = await createActivity(activityData);
 
@@ -227,15 +230,11 @@ describe('Activities service', () => {
 					commute: true,
 					start_latlng: '',
 					end_latlng: '',
-					// activity_impact: {
-					// 	fossil_alternative_co2: 331
-					// }
 				};
 
-				const baseArray = Object.entries(activityData);
-				const incompleteData = baseArray.filter((val, index) => baseArray[index][0] !== field);
+				const incompleteData = getFilteredObject(activityData, ([key]) => key !== field);
 
-				await expect(createActivity(Object.fromEntries(incompleteData)))
+				await expect(createActivity(incompleteData))
 					.rejects
 					.toThrow(`Missing required fields: ${field}`);
 			});
@@ -256,9 +255,7 @@ describe('Activities service', () => {
 					commute: true,
 					start_latlng: '',
 					end_latlng: '',
-					// activity_impact: {
-					// 	fossil_alternative_co2: 331
-					// }
+					activity_impact: null
 				};
 
 				await expect(createActivity(activityData))
@@ -282,9 +279,7 @@ describe('Activities service', () => {
 					commute: true,
 					start_latlng: '',
 					end_latlng: '',
-					// activity_impact: {
-					// 	fossil_alternative_co2: 331
-					// }
+					activity_impact: null,
 				};
 
 				await expect(createActivity(activityData))
@@ -323,9 +318,11 @@ describe('Activities service', () => {
 				const { id } = await generateUserActivity(user);
 				const activityData = {
 					commute: true,
-					// activity_impact: {
-					// 	fossil_alternative_co2: 200
-					// }
+					activity_impact: {
+						fossil_alternative_distance: 1041,
+						fossil_alternative_co2: 200,
+						fossil_alternative_polyline: '',
+					}
 				};
 				const activity = await updateActivity(id, activityData);
 
@@ -337,9 +334,6 @@ describe('Activities service', () => {
 			it('should throw an error', async () => {
 				const activityData = {
 					commute: true,
-					// activity_impact: {
-					// 	fossil_alternative_co2: 200
-					// }
 				};
 
 				await expect(updateActivity(9999, activityData))

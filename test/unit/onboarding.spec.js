@@ -1,14 +1,12 @@
 const mockAxios = require('../../__mocks__/axios');
 const { activitiesResponse } = require('../../__fixtures__/strava');
 const onboardingService = require('../../src/services/onboarding.service');
-const { initializeDatabase } = require('../utils/database');
 const {
 	generateNewUser,
 	generateStravaConnectionForUser,
-	generatePlatformId} = require('../utils/fixture-generator');
+	generatePlatformId } = require('../utils/fixture-generator');
 const { logger } = require('../../src/utils/logger.utils');
 
-// beforeEach(async () => await initializeDatabase().catch(e => console.error(e.stack)));
 
 describe('Onboarding service', () => {
 	describe('onboardUser', () => {
