@@ -162,16 +162,14 @@ const updateActivity = async (activityId, newData) => {
 				[...values, newData[column]]
 			];
 		}, [[], 1, []]);
-		logger.info('updateActivityImpact');
-		logger.info(updateSql);
-		logger.info(updateValues);
+
 		const sql = `UPDATE activity
 					SET ${updateSql.join(',')}
 					WHERE id = $${n}
 					RETURNING *`;
 
 		const result = await db.query(sql, [...updateValues, activityId]);
-		const impact = newData.activity_impact
+		const impact = newData.activity_impact !== undefined
 			? await upcreateActivityImpact(activityId, newData.activity_impact)
 			: await getActivityImpact(activityId);
 

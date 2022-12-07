@@ -7,6 +7,10 @@ const {
  } = require('../../src/services/activities.service');
 
 const {
+	getEmissionsAvoidedByUser,
+} = require('../../src/services/impact.service');
+
+const {
 	getFilteredObject
 } = require('../../src/utils/object.utils');
 
@@ -207,6 +211,33 @@ describe('Activities service', () => {
 			});
 		});
 
+		describe('when activity is created with impact', () => {
+			it('should update user impact score', async () => {
+				const user = await generateNewUser();
+				await createActivity({
+					user_id: user.id,
+					activity_type: 'ride',
+					activity_platform: 'strava',
+					activity_platform_activity_id: generatePlatformActivityId(),
+					description: 'Ride to the shops',
+					start_date: '2022-11-23 12:14:00',
+					timezone: 'Australia/Darwin',
+					distance: 1723,
+					commute: true,
+					start_latlng: '',
+					end_latlng: '',
+					activity_impact: {
+						fossil_alternative_distance: 2083,
+						fossil_alternative_co2: 400,
+						fossil_alternative_polyline: '',
+					}
+				});
+
+				const emissionsSaved = await getEmissionsAvoidedByUser(user.id);
+				expect(emissionsSaved).toEqual(400)
+			});
+		});
+
 		describe('when any required field is missing', () => {
 			it.each([
 				'user_id',
@@ -327,6 +358,45 @@ describe('Activities service', () => {
 				const activity = await updateActivity(id, activityData);
 
 				expect(activity).toEqual(expect.objectContaining(activityData));
+			});
+		});
+
+		describe('when activity is updated with impact', () => {
+			it('should update user impact score', async () => {
+				const user = await generateNewUser();
+				const { id } = await generateUserActivity(user);
+				await updateActivity(id, {
+					commute: true,
+					activity_impact: {
+						fossil_alternative_distance: 1041,
+						fossil_alternative_co2: 200,
+						fossil_alternative_polyline: '',
+					}
+				});
+
+				const emissionsSaved = await getEmissionsAvoidedByUser(user.id);
+				expect(emissionsSaved).toEqual(200)
+			});
+		});
+
+		describe('when activity is updated with impact set to null', () => {
+			it('should update user impact score', async () => {
+				const user = await generateNewUser();
+				const { id } = await generateUserActivity(user, {
+					activity_impact: {
+						fossil_alternative_distance: 1041,
+						fossil_alternative_co2: 200,
+						fossil_alternative_polyline: '',
+					}
+				});
+
+				await updateActivity(id, {
+					commute: true,
+					activity_impact: null
+				});
+
+				const emissionsSaved = await getEmissionsAvoidedByUser(user.id);
+				expect(emissionsSaved).toEqual(0)
 			});
 		});
 

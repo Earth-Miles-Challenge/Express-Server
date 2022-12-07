@@ -80,6 +80,10 @@ const updateActivityImpact = async (activityId, newData) => {
 
 const upcreateActivityImpact = async (activityId, newData) => {
 	const exists = await getActivityImpact(activityId);
+
+	// Delete the activity impact if the data has been set to null
+	if (exists && newData === null) return await deleteActivityImpact(activityId);
+
 	return exists
 		? await updateActivityImpact(activityId, newData)
 		: await createActivityImpact({
