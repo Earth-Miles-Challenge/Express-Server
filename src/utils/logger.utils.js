@@ -17,7 +17,8 @@ const readLog = () => {
 }
 
 module.exports = {
-	log4js,
-	logger,
+	logger: log4js.getLogger('debug'),
+	access: log4js.getLogger('access'),
+	express: log4js.connectLogger(log4js.getLogger('access'), { level: log4js.levels.INFO }),
 	readLog
 }

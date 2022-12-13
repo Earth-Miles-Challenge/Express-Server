@@ -11,6 +11,8 @@ const {
 const { generateAccessToken } = require('../services/authentication.service');
 const { onboardUser } = require('../services/onboarding.service');
 
+const { getEnvironment } = require('../utils/env.utils');
+
 /**
  * Strava authentication.
  *
@@ -54,6 +56,8 @@ async function authenticateStrava(req, res, next) {
 				...scope
 			}
 
+			console.debug(stravaConnData);
+
 			// Update or create Strava connection
 			const isUpdate = !!existingUser && await getStravaConnection(user.id);
 			if (isUpdate) {
@@ -77,10 +81,10 @@ async function authenticateStrava(req, res, next) {
 
 			// Generate the token
 			const token = generateAccessToken({id: user.id}, '2 days');
-
+			console.debug(token);
 			res.cookie('token', token, {
-				domain: 'localhost',
-				secure: false,
+				secure: getEnvironment() === 'PRODUCTION',
+				maxAge: null,
 				httpOnly: false
 			});
 

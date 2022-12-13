@@ -1,4 +1,4 @@
-const { log4js, logger } = require('../utils/logger.utils');
+const { logger } = require('../utils/logger.utils');
 
 module.exports = {
 	format: 'dev',

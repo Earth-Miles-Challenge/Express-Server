@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const morganConfig = require('./morgan.config');
 
-const { log4js, logger } = require('../utils/logger.utils');
+const logger = require('../utils/logger.utils');
 
 const cors = require('cors');
 const corsConfig = require('./cors.config');
@@ -16,29 +16,23 @@ const session = require('express-session');
 const sessionConfig = require('./session.config');
 
 const usersRouter = require('../routes/users.route');
-const activitiesRouter = require('../routes/activities.route');
 const authRouter = require('../routes/auth.route');
-const userImpactRouter = require('../routes/user-impact.route');
 const globalImpactRouter = require('../routes/global-impact.route');
 
 // Middleware
 app.use(morgan(morganConfig.format, morganConfig.options));
-app.use((req, res, next) => {
-	if (process.NODE_ENV === 'development') {
-		log4js.connectLogger(logger, { level: "info" });
-	}
-	next();
-});
+app.use(logger.express);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(session(sessionConfig));
 app.use(cors(corsConfig));
+// app.use(cors());
 
 /** @todo remove this eventually, or do something similar in logger? */
 app.all('*', (req, res, next) => {
 	if (process.NODE_ENV === 'development') {
-		logger.info('Session ID: ' + req.session.id);
+		logger.logger.info('Session ID: ' + req.session.id);
 	}
 	next();
 });

@@ -3,6 +3,7 @@
 .env.local
 .DS_Store
 client
+logs
 node_modules
 
 # Elastic Beanstalk Files
