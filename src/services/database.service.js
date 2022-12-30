@@ -1,12 +1,7 @@
 const { Pool } = require('pg');
-const { getEnvVariable } = require('../utils/env.utils');
 
 const pool = new Pool({
-	user: getEnvVariable('PGUSER'),
-	host: getEnvVariable('PGHOST'),
-	database: getEnvVariable('PGDATABASE'),
-	password: getEnvVariable('PGPASSWORD'),
-	port: getEnvVariable('PGPORT')
+	connectionString: process.env.DATABASE_URL,
 });
 
 module.exports = {

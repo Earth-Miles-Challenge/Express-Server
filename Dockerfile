@@ -21,7 +21,7 @@ RUN npm ci
 # Copy other files
 COPY . /app
 
-# Set PORT config
+# Set PORT config (9000 is the default for development)
 ARG PORT=9000
 ENV PORT $PORT
 EXPOSE $PORT

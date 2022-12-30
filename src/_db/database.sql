@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS "activity" (
   "start_latlng" VARCHAR,
   "end_latlng" VARCHAR,
   "map_polyline" TEXT,
-  "commute" BOOLEAN
+  "commute" BOOLEAN,
   UNIQUE ("activity_platform", "activity_platform_activity_id")
 );
 

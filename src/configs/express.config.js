@@ -9,9 +9,6 @@ const morganConfig = require('./morgan.config');
 
 const logger = require('../utils/logger.utils');
 
-const cors = require('cors');
-const corsConfig = require('./cors.config');
-
 const usersRouter = require('../routes/users.route');
 const authRouter = require('../routes/auth.route');
 const globalImpactRouter = require('../routes/global-impact.route');
@@ -22,12 +19,11 @@ app.use(logger.express);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(cors(corsConfig));
 
 // Routers
-app.use('/users', usersRouter);
-app.use('/auth', authRouter);
-app.use('/impact', globalImpactRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/impact', globalImpactRouter);
 
 // 404 handler
 app.use(function(req, res, next) {
@@ -38,7 +34,7 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
 	res.locals.message = err.message;
 
-	if (req.app.get('env')=== 'development') {
+	if (req.app.get('env') === 'development') {
 		console.error(err);
 		res.locals.error = err;
 	} else {
