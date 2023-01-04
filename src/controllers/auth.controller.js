@@ -81,7 +81,7 @@ async function authenticateStrava(req, res, next) {
 
 			// Generate the token
 			const token = generateAccessToken({id: user.id}, '2 days');
-			console.debug(token);
+			logger.info(token);
 			res.cookie('token', token, {
 				secure: getEnvironment() === 'PRODUCTION',
 				maxAge: null,
