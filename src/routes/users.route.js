@@ -16,9 +16,9 @@ router.get('/:userId/activities/fetchLatest', activitiesController.fetchLatest);
 router.get('/:userId/activities/:activityId', activitiesController.activityExists, activitiesController.getOne);
 
 // Base
-router.get('/', usersController.get);
+// router.get('/', usersController.get);
 router.get('/:userId', usersController.getOne);
-router.post('/', usersController.create);
+// router.post('/', usersController.create);
 router.put('/:userId', usersController.update);
 router.get('/:userId/onboard', usersController.onboard);
 router.delete('/:userId', usersController.remove);
