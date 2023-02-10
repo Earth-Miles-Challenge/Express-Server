@@ -7,8 +7,6 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const morganConfig = require('./morgan.config');
 
-const ipBlock = require('./ip-block.config');
-
 const logger = require('../utils/logger.utils');
 
 const usersRouter = require('../routes/users.route');
@@ -21,9 +19,6 @@ app.use(logger.express);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-
-// IP Block
-app.use(ipBlock);
 
 // Routers
 app.use('/api/users', usersRouter);
