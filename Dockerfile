@@ -38,26 +38,7 @@ RUN npm i nodemon -g
 CMD [ "npm", "run", "start" ]
 
 # ################### ###################
-# STAGE 3: Dev-envs
-# ################### ###################
-FROM development as dev-envs
-
-RUN <<EOF
-apt-get update
-apt-get install -y --no-install-recommends git
-EOF
-
-RUN <<EOF
-useradd -s /bin/bash -m vscode
-groupadd docker
-usermod -aG docker vscode
-EOF
-
-# Install Docker tools (cli, buildx, compose)
-COPY --from=gloursdocker/docker / /
-
-# ################### ###################
-# STAGE 4: Production
+# STAGE 3: Production
 # ################### ###################
 FROM base as production
 
