@@ -12,6 +12,7 @@ const logger = require('../utils/logger.utils');
 const usersRouter = require('../routes/users.route');
 const authRouter = require('../routes/auth.route');
 const globalImpactRouter = require('../routes/global-impact.route');
+const webhooksRouter = require('../routes/webhooks.route');
 
 // Middleware
 app.use(morgan(morganConfig.format, morganConfig.options));
@@ -24,6 +25,8 @@ app.use(cookieParser());
 app.use('/api/users', usersRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/impact', globalImpactRouter);
+
+app.use('/webhooks', webhooksRouter);
 
 // 404 handler
 app.use(function(req, res, next) {
