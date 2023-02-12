@@ -1,9 +1,17 @@
-import { getEnvVariable } from '../utils/env.utils';
+const { getEnvVariable } = require('../utils/env.utils');
 
 async function stravaWebhook(req, res, next) {
-	if (req.query.hub.challenge && req.query.hub.verify_token === getEnvVariable('strava_webhook_verification_token')) {
-		res.send({'hub.challenge': req.query.hub.challenge});
+	// Verify webhook subscription
+	if (req.query['hub.challenge']) {
+		if (req.query['hub.verify_token'] === getEnvVariable('STRAVA_WEBHOOK_VERIFICATION_TOKEN')) {
+			res.send({'hub.challenge': req.query['hub.challenge']});
+		} else {
+			res.send('incorrect verification token')
+		}
 	}
+
+	
+
 }
 
 module.exports = {
