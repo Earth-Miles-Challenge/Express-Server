@@ -1,5 +1,5 @@
 const { getEnvVariable } = require('../utils/env.utils');
-const { getActivityFromStrava, createActivityFromStravaActivity } = require('../services/strava.service');
+const { getActivityFromStrava, createActivityFromStravaActivity, deleteStravaConnection } = require('../services/strava.service');
 const { getUserByPlatformId } = require('../services/users.service');
 const { deleteActivity, updateActivity } = require('../services/activities.service');
 
@@ -27,12 +27,14 @@ async function stravaEventWebhook(req, res, next) {
 							updates.activity_type = req.body.updates['type'];
 						}
 
-						if (Object.keys(updates).length) {
-							await updateActivity(req.body.object_id, updates, true);
-							res.send('Activity updated');
-						} else {
+						if (Object.keys(updates).length === 0) {
 							res.send('Activity unchanged');
+							return;
 						}
+
+						await updateActivity(req.body.object_id, updates, true);
+
+						res.send('Activity updated');
 					} catch (err) {
 						next(err);
 					}
@@ -42,12 +44,18 @@ async function stravaEventWebhook(req, res, next) {
 					try {
 						const user = await getUserByPlatformId('strava', req.body.owner_id);
 
-						if (!user) res.send('Unknown user');
+						if (!user) {
+							res.send('Unknown user');
+							return;
+						}
 
 						const stravaActivity = await getActivityFromStrava(req.body.object_id, user.id);
 						const activity = await createActivityFromStravaActivity(user.id, stravaActivity);
 
-						if (!activity) res.send('Failed to create activity');
+						if (!activity) {
+							res.send('Failed to create activity');
+							return;
+						}
 
 						res.send('Created activity');
 					} catch (err) {
@@ -67,13 +75,13 @@ async function stravaEventWebhook(req, res, next) {
 			break;
 
 		case 'athlete':
-			switch (req.body.aspect_type) {
-				case 'update':
-					break;
-				case 'create':
-					break;
-				case 'delete':
-					break;
+			if (req.body.aspect_type === 'update' && req.body.updates['authorized'] && req.body.updates['authorized'] === 'false') {
+				try {
+					await deleteStravaConnection(req.body.owner_id, true);
+					res.send('User Strava connection details removed')
+				} catch (err) {
+					next(err);
+				}
 			}
 			break;
 	}

@@ -152,8 +152,8 @@ const deleteStravaConnection = async (userId, isStravaId = false) => {
 	const client = await db.pool.connect();
 	try {
 		await client.query('BEGIN');
-		await client.query(`DELETE FROM strava_connection WHERE user_id = $1`, [userId]);
-		await client.query(`DELETE FROM strava_refresh_token WHERE user_id = $1`, [userId]);
+		await client.query(`DELETE FROM strava_connection WHERE user_id = $1`, [user.user_id]);
+		await client.query(`DELETE FROM strava_refresh_token WHERE user_id = $1`, [user.user_id]);
 		await client.query('COMMIT');
 		return 1;
 	} catch (e) {
