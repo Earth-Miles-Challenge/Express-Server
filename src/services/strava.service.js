@@ -6,8 +6,11 @@ const { getEnvVariable } = require('../utils/env.utils');
 const { createActivity } = require('./activities.service');
 const { createActivityImpact } = require('./activity-impact.service');
 
-const getStravaConnection = async (userId) => {
-	const result = await db.query(`SELECT * FROM strava_connection WHERE user_id = $1`, [userId]);
+const getStravaConnection = async (userId, isStravaId = false) => {
+	const result = isStravaId
+		? await db.query(`SELECT * FROM strava_connection WHERE strava_id = $1`, [userId])
+		: await db.query(`SELECT * FROM strava_connection WHERE user_id = $1`, [userId]);
+
 	return result.rows.length ? result.rows[0] : null;
 }
 
@@ -73,8 +76,8 @@ const createStravaConnection = async (data) => {
 	}
 }
 
-const updateStravaConnection = async (userId, newData) => {
-	const existingData = await getStravaConnection(userId);
+const updateStravaConnection = async (userId, newData, isStravaId = false) => {
+	const existingData = await getStravaConnection(userId, isStravaId);
 
 	if (!existingData) {
 		const err = new Error(`Strava connection for user does not exist.`);
@@ -137,8 +140,8 @@ const updateStravaConnection = async (userId, newData) => {
 	}
 }
 
-const deleteStravaConnection = async (userId) => {
-	const user = await getStravaConnection(userId);
+const deleteStravaConnection = async (userId, isStravaId = false) => {
+	const user = await getStravaConnection(userId, isStravaId);
 
 	if (!user) {
 		const err = new Error('Strava connection for user does not exist.');
@@ -194,8 +197,8 @@ const getClientToken = async (code) => {
 	}
 }
 
-const getUserAccessToken = async (userId) => {
-	const stravaConn = await getStravaConnection(userId);
+const getUserAccessToken = async (userId, isStravaId = false) => {
+	const stravaConn = await getStravaConnection(userId, isStravaId);
 	if (stravaConn.expires_at > parseInt(Date.now() / 1000)) {
 		return {
 			accessToken: stravaConn.access_token,
@@ -247,6 +250,23 @@ const getAthleteActivities = async (userId, after = 0, perPage = 30) => {
 		return response.data;
 	} catch (err) {
 		logger.info(`There was an error fetching athlete activities:`, err.message);
+		throw err;
+	}
+}
+
+const getActivityFromStrava = async (activityId, userId, isStravaId = false) => {
+	try {
+		const { accessToken } = await getUserAccessToken(userId, isStravaId);
+		const response = await axios.get(
+			`https://www.strava.com/api/v3/activities/${activityId}`, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				'Accept-Encoding': 'application/json'
+			}
+		});
+		return response.data;
+	} catch (err) {
+		logger.info(`There was an error fetching athlete activity:`, err.message);
 		throw err;
 	}
 }
@@ -369,6 +389,7 @@ module.exports = {
 	getClientToken,
 	getUserAccessToken,
 	getAthleteActivities,
+	getActivityFromStrava,
 	createActivityFromStravaActivity,
 	parseTimezone,
 	parseScope

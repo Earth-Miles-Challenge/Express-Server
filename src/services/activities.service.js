@@ -14,31 +14,26 @@ const {
 	getActivityImpact
 } = require('./activity-impact.service');
 
-const getActivity = async (activityId) => {
-	const result = await db.query(`
-		SELECT
-			id,
-			user_id,
-			activity_platform,
-			activity_platform_activity_id,
-			activity_type,
-			description,
-			start_date,
-			timezone,
-			distance,
-			commute,
-			start_latlng,
-			end_latlng,
-			map_polyline,
-			activity_impact.fossil_alternative_distance,
-			activity_impact.fossil_alternative_polyline,
-			activity_impact.fossil_alternative_co2
-		FROM
-			activity
+const getActivity = async (activityId, isPlatformId = false) => {
+	let result;
+
+	if (isPlatformId) {
+		result = await db.query(`
+			SELECT id, user_id, activity_platform, activity_platform_activity_id, activity_type, description, start_date, timezone, distance, commute, start_latlng, end_latlng, map_polyline, activity_impact.fossil_alternative_distance, activity_impact.fossil_alternative_polyline, activity_impact.fossil_alternative_co2
+			FROM activity
 			LEFT JOIN activity_impact ON activity.id = activity_impact.activity_id
-		WHERE id = $1`,
-		[activityId]
-	);
+			WHERE activity_platform_activity_id = $1`,
+			[activityId]
+		);
+	} else {
+		result = await db.query(`
+			SELECT id, user_id, activity_platform, activity_platform_activity_id, activity_type, description, start_date, timezone, distance, commute, start_latlng, end_latlng, map_polyline, activity_impact.fossil_alternative_distance, activity_impact.fossil_alternative_polyline, activity_impact.fossil_alternative_co2
+			FROM activity
+			LEFT JOIN activity_impact ON activity.id = activity_impact.activity_id
+			WHERE id = $1`,
+			[activityId]
+		);
+	}
 
 	return result.rows.length ? getActivityResponseObject(result.rows[0]) : null;
 }
@@ -136,8 +131,8 @@ const createActivity = async (data) => {
 	}
 }
 
-const updateActivity = async (activityId, newData) => {
-	const existingData = await getActivity(activityId);
+const updateActivity = async (activityId, newData, isPlatformId = false) => {
+	const existingData = await getActivity(activityId, isPlatformId);
 
 	if (!existingData) {
 		const err = new Error(`Activity does not exist.`);
@@ -168,10 +163,10 @@ const updateActivity = async (activityId, newData) => {
 					WHERE id = $${n}
 					RETURNING *`;
 
-		const result = await db.query(sql, [...updateValues, activityId]);
+		const result = await db.query(sql, [...updateValues, existingData.id]);
 		const impact = newData.activity_impact !== undefined
-			? await upcreateActivityImpact(activityId, newData.activity_impact)
-			: await getActivityImpact(activityId);
+			? await upcreateActivityImpact(existingData.id, newData.activity_impact)
+			: await getActivityImpact(existingData.id);
 
 		return {
 			...result.rows[0],
@@ -180,6 +175,24 @@ const updateActivity = async (activityId, newData) => {
 				: null
 		};
 	}
+}
+
+/**
+ * Delete an activity.
+ */
+const deleteActivity = async (activityId, isPlatformId = false) => {
+	const activity = await getActivity(activityId, isPlatformId);
+
+	if (!activity) {
+		const err = new Error('Activity does not exist.');
+		err.name = 'invalidActivity';
+		throw err;
+	}
+
+	const sql = `DELETE FROM activity
+				WHERE id = $1`;
+	const result = await db.query(sql, [activity.id]);
+	return result.rowCount;
 }
 
 /**
@@ -271,6 +284,7 @@ module.exports = {
 	getActivities,
 	createActivity,
 	updateActivity,
+	deleteActivity,
 	getSupportedActivityTypes,
 	getSupportedPlatforms,
 	getActivityResponseObject
