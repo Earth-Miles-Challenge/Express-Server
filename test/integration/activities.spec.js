@@ -25,7 +25,7 @@ describe('/users/:id/activities route', () => {
 				const activities = await generateUserActivities(35, user);
 
 				const res = await request(app)
-					.get(`/users/${user.id}/activities`)
+					.get(`/api/users/${user.id}/activities`)
 					.set('Authorization', 'Bearer ' + token);
 
 				expect(res.statusCode).toBe(200);
@@ -43,7 +43,7 @@ describe('/users/:id/activities route', () => {
 				const token = getTokenForUser(user);
 
 				const earlyCheck = await request(app)
-					.get(`/users/${user.id}/activities`)
+					.get(`/api/users/${user.id}/activities`)
 					.set('Authorization', 'Bearer ' + token);
 
 				expect(earlyCheck.statusCode).toBe(200);
@@ -54,7 +54,7 @@ describe('/users/:id/activities route', () => {
 				const activities = await generateUserActivities(25, user);
 
 				const res = await request(app)
-					.get(`/users/${user.id}/activities?number=${expectedNumber}`)
+					.get(`/api/users/${user.id}/activities?number=${expectedNumber}`)
 					.set('Authorization', 'Bearer ' + token);
 
 				expect(res.statusCode).toBe(200);
@@ -67,7 +67,7 @@ describe('/users/:id/activities route', () => {
 		describe('when making request without token set', () => {
 			it('should return a 401 response', async () => {
 				const res = await request(app)
-					.get('/users/1/activities');
+					.get('/api/users/1/activities');
 
 				expect(res.statusCode).toBe(401);
 			});
@@ -82,7 +82,7 @@ describe('/users/:id/activities route', () => {
 				const token = getTokenForUser(user);
 
 				const res = await request(app)
-					.get(`/users/${user.id + 1}/activities`)
+					.get(`/api/users/${user.id + 1}/activities`)
 					.set('Authorization', `Bearer ${token}`);
 
 				expect(res.statusCode).toBe(403);
@@ -94,7 +94,7 @@ describe('/users/:id/activities route', () => {
 		xdescribe('when fetching activities for non-existing user', () => {
 			it('should return 404', async () => {
 				const res = await request(app)
-					.get('/users/9999/activities')
+					.get('/api/users/9999/activities')
 					.set('Authorization', 'Bearer ' + token);
 
 				expect(res.statusCode).toBe(404);
@@ -120,7 +120,7 @@ describe('/users/:id/activities route', () => {
 
 				const activity = await generateUserActivity(user, expectedData);
 				const res = await request(app)
-					.get(`/users/${user.id}/activities/${activity.id}`)
+					.get(`/api/users/${user.id}/activities/${activity.id}`)
 					.set('Authorization', `Bearer ${token}`);
 
 				expect(res.statusCode).toBe(200);

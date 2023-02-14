@@ -42,6 +42,10 @@ async function fetchLatest(req, res, next) {
 	}
 }
 
+async function update(req, res, next) {
+	
+}
+
 async function activityExists(req, res, next) {
 	const activityId = parseInt(req.params.activityId);
 	const activity = await getActivity(activityId);

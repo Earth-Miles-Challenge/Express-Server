@@ -44,7 +44,7 @@ describe('GET /auth/strava', () => {
 			mockAxios.post.mockResolvedValue(oAuthTokenResponse);
 			const code = '123456';
 			await request(app)
-				.get(`/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
+				.get(`/api/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
 
 			expect(mockAxios.post).toHaveBeenCalledWith(
 				'https://www.strava.com/api/v3/oauth/token',
@@ -64,7 +64,7 @@ describe('GET /auth/strava', () => {
 
 			const code = '123456';
 			const res = await request(app)
-				.get(`/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
+				.get(`/api/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
 
 			expect(res.statusCode).toBe(200);
 
@@ -78,7 +78,7 @@ describe('GET /auth/strava', () => {
 			};
 
 			// Check that the decoded token has the data we expect
-			const token = cookies[0].match(/token=(.*); Domain/)[1]
+			const token = cookies[0].match(/token=(.*);/)[1]
 			const decodedToken = verifyAccessToken(token);
 			expect(decodedToken).toEqual(expect.objectContaining(expectedUser));
 
@@ -112,14 +112,14 @@ describe('GET /auth/strava', () => {
 
 			const code = '123456';
 			const res = await request(app)
-				.get(`/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
+				.get(`/api/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
 
 			// Check that the cookie is set
 			const cookies = res.headers['set-cookie'];
 			expect(cookies).toEqual(expect.objectContaining(/token=.*/));
 
 			// Check that the decoded token has the new Strava details
-			const token = cookies[0].match(/token=(.*); Domain/)[1]
+			const token = cookies[0].match(/token=(.*);/)[1]
 			const decodedToken = verifyAccessToken(token);
 			const newStravaConn = await getStravaConnection(decodedToken.id);
 			expect(newStravaConn).not.toEqual(oldStravaConn);
@@ -135,7 +135,7 @@ describe('GET /auth/strava', () => {
 
 			const code = '123456';
 			const res = await request(app)
-				.get(`/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
+				.get(`/api/auth/strava?code=${code}&scope=read,activity:write,activity:read_all,profile:read_all`);
 
 			expect(axios.post).toHaveBeenCalledWith(
 				'https://www.strava.com/api/v3/oauth/token',
@@ -156,7 +156,7 @@ describe('GET /auth/strava', () => {
 	describe('when code and scope are not set', () => {
 		it('should return 400 response', async () => {
 			const res = await request(app)
-				.get(`/auth/strava`);
+				.get(`/api/auth/strava`);
 
 			expect(res.statusCode).toBe(400);
 		});

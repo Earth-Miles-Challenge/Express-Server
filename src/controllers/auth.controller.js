@@ -56,8 +56,6 @@ async function authenticateStrava(req, res, next) {
 				...scope
 			}
 
-			console.debug(stravaConnData);
-
 			// Update or create Strava connection
 			const isUpdate = !!existingUser && await getStravaConnection(user.id);
 			if (isUpdate) {

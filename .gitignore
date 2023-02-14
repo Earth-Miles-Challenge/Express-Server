@@ -1,6 +1,6 @@
 .elasticbeanstalk
 .env
-.env.local
+.env*
 .DS_Store
 client
 logs
