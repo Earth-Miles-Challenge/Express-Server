@@ -84,12 +84,12 @@ describe('Activities service', () => {
 				const firstActivityData = {
 					"activity_type": "run",
 					"description": "First run",
-					"start_date": "2022-11-06T09:00:00Z",
+					"start_date": "2022-11-06 09:00:00",
 				}
 				const secondActivityData = {
 					"activity_type": "ride",
 					"description": "Second ride",
-					"start_date": "2022-11-22T09:00:00Z",
+					"start_date": "2022-11-22 09:00:00",
 				}
 
 				await generateUserActivity(user, firstActivityData);
@@ -97,7 +97,7 @@ describe('Activities service', () => {
 
 				await generateUserActivity(user, {
 					"description": "School to home",
-					"start_date": "2017-09-06T22:48:15Z",
+					"start_date": "2017-09-06 22:48:15",
 				});
 
 				await expect(getMostRecentActivity(user.id))
@@ -119,9 +119,21 @@ describe('Activities service', () => {
 		describe('when fetching with default arguments', () => {
 			it('should return 30 records starting with most recent', async () => {
 				const user = await generateNewUser();
-				const firstActivity = { "activity_type": "ride", "description": "First Ride", "start_date": "2022-02-22 09:00:00" };
-				const defaultActivity = { "activity_type": "ride", "description": "Evening Ride", "start_date": "2022-02-22 10:00:00" };
-				const lastActivity = { "activity_type": "ride", "description": "Last Ride", "start_date": "2022-02-22 11:00:00" };
+				const firstActivity = {
+					"activity_type": "ride",
+					"description": "First Ride",
+					"start_date": "2022-02-22 09:00:00"
+				};
+				const defaultActivity = {
+					"activity_type": "ride",
+					"description": "Evening Ride",
+					"start_date": "2022-02-22 10:00:00"
+				};
+				const lastActivity = {
+					"activity_type": "ride",
+					"description": "Last Ride",
+					"start_date": "2022-02-22 11:00:00"
+				};
 
 				await generateUserActivity(user, firstActivity);
 				await generateUserActivities(30, user, defaultActivity, false);
@@ -157,9 +169,21 @@ describe('Activities service', () => {
 		describe('when setting number & page of records to return', () => {
 			it('should return given number of records starting with most recent', async () => {
 				const user = await generateNewUser();
-				const firstActivity = { "activity_type": "ride", "description": "First Ride", "start_date": "2022-02-22 09:00:00" };
-				const defaultActivity = { "activity_type": "ride", "description": "Evening Ride", "start_date": "2022-02-22 10:00:00" };
-				const lastActivity = { "activity_type": "ride", "description": "Last Ride", "start_date": "2022-02-22 11:00:00" };
+				const firstActivity = {
+					"activity_type": "ride",
+					"description": "First Ride",
+					"start_date": "2022-02-22 09:00:00"
+				};
+				const defaultActivity = {
+					"activity_type": "ride",
+					"description": "Evening Ride",
+					"start_date": "2022-02-22 10:00:00"
+				};
+				const lastActivity = {
+					"activity_type": "ride",
+					"description": "Last Ride",
+					"start_date": "2022-02-22 11:00:00"
+				};
 
 				await generateUserActivity(user, firstActivity);
 				await generateUserActivities(10, user, defaultActivity, false);

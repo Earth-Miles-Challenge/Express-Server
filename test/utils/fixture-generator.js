@@ -69,14 +69,14 @@ const generateUserActivity = async (user, activityData = {}) => {
 
 const generateUserActivities = async (number, user, activityData = {}, autoChangeDates = true) => {
 	let activities = [];
-	let date = activityData.start_date ? new Date(activityData.start_date) : new Date('2022-02-12T08:23:21Z');
+	let date = activityData.start_date ? activityData.start_date : '2022-02-12 08:23:21';
 	for (let i = number; i > 0; i--) {
 		if (autoChangeDates) {
 			date.setDate(date.getDate(date) - 1);
 		}
 		activities.push(await generateUserActivity(user, {
 			...activityData,
-			start_date: date.toISOString()
+			start_date: date
 		}));
 	}
 	return activities;
