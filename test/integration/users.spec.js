@@ -24,7 +24,7 @@ describe('/users route', () => {
 					.set('Authorization', 'Bearer ' + token);
 
 				expect(res.statusCode).toBe(200);
-				expect(getComparisonUserData(res.body)).toEqual(expect.objectContaining(newUser));
+				expect(res.body).toEqual(expect.objectContaining(getComparisonUserData(newUser, true)));
 			});
 		});
 

@@ -1,23 +1,27 @@
 const parse = require('postgres-date');
 const { getFilteredObject } = require("../../src/utils/object.utils");
 
-const getComparisonActivityData = (activityData) => {
+const getComparisonActivityData = (activityData, dateToString = false) => {
 	if (!activityData.start_date) return activityData;
+
+	// Parse the date the same way pg is going to
+	const date = dateToString ? activityData.start_date.toISOString() : parse(`${activityData.start_date}Z`)
 
 	return {
 		...activityData,
-		// Parse the date the same way pg is going to
-		start_date: parse(`${activityData.start_date}Z`)
+		start_date: date
 	}
 }
 
-const getComparisonUserData = (userData) => {
+const getComparisonUserData = (userData, dateToString = false) => {
 	if (!userData.created_at) return userData;
+
+	// Parse the date the same way pg is going to
+	const date = dateToString ? userData.created_at.toISOString() : parse(`${userData.created_at}Z`)
 
 	return {
 		...userData,
-		// Parse the date the same way pg is going to
-		created_at: parse(`${userData.created_at}Z`)
+		created_at: date
 	}
 }
 

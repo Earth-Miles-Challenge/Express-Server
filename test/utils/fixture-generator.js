@@ -72,7 +72,9 @@ const generateUserActivities = async (number, user, activityData = {}, autoChang
 	let date = activityData.start_date ? activityData.start_date : '2022-02-12 08:23:21';
 	for (let i = number; i > 0; i--) {
 		if (autoChangeDates) {
-			date.setDate(date.getDate(date) - 1);
+			dateObject = new Date(date);
+			dateObject.setDate(dateObject.getDate(date) - 1);
+			date = dateObject.toLocaleString('en-US');
 		}
 		activities.push(await generateUserActivity(user, {
 			...activityData,
