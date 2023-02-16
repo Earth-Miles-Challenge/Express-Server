@@ -14,7 +14,7 @@ router.get('/:userId/impact/emissionsAvoided', impactController.getEmissionsAvoi
 router.get('/:userId/activities/', activitiesController.get);
 router.get('/:userId/activities/fetchLatest', activitiesController.fetchLatest);
 router.get('/:userId/activities/:activityId', activitiesController.activityExists, activitiesController.getOne);
-router.put('/:userId/activities/:activityId', activitiesController.activityExists, activitiesController.getOne);
+router.put('/:userId/activities/:activityId', activitiesController.activityExists, activitiesController.update);
 
 // Base
 router.get('/:userId', usersController.getOne);

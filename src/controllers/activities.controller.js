@@ -2,7 +2,8 @@ const { logger } = require('../utils/logger.utils');
 const {
 	getActivity,
 	getActivities,
-	getMostRecentActivity
+	getMostRecentActivity,
+	updateActivity
 } = require('../services/activities.service');
 
 const stravaService = require('../services/strava.service');
@@ -43,7 +44,15 @@ async function fetchLatest(req, res, next) {
 }
 
 async function update(req, res, next) {
-	
+	try {
+		const { activityId } = req.params;
+		const activity = await updateActivity(activityId, req.body);
+
+		res.json(activity);
+	} catch (err) {
+		logger.debug(`Error when updating an activity`, err.message);
+		next(err);
+	}
 }
 
 async function activityExists(req, res, next) {
@@ -65,5 +74,6 @@ module.exports = {
 	get,
 	getOne,
 	fetchLatest,
+	update,
 	activityExists
 };

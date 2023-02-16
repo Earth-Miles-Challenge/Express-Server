@@ -128,4 +128,41 @@ describe('/users/:id/activities route', () => {
 			});
 		});
 	});
+
+	describe('PUT /users/:id/activities/:activityId', () => {
+		describe('when updating an existing activity with required authorization', () => {
+			it('should return 200', async() => {
+				const user = await generateNewUser({
+					activity_platform: 'strava',
+					activity_platform_id: generatePlatformId()
+				});
+
+				const token = getTokenForUser(user);
+				const initialData = {
+					"activity_type": "ride",
+					"description": "Ride to work",
+					"commute": false
+				}
+
+				const activity = await generateUserActivity(user, initialData);
+
+				const updateData = {
+					"commute": true
+				};
+
+				const res = await request(app)
+					.put(`/api/users/${user.id}/activities/${activity.id}`)
+					.set('Authorization', `Bearer ${token}`)
+					.send(updateData);
+
+				const expectedData = {
+					...initialData,
+					...updateData
+				}
+
+				expect(res.statusCode).toBe(200);
+				expect(res.body).toEqual(expect.objectContaining(JSON.parse(JSON.stringify(expectedData))))
+			});
+		});
+	});
 });
