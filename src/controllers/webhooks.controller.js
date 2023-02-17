@@ -12,7 +12,6 @@ function stravaWebhookVerificationWebhook(req, res) {
 }
 
 async function stravaEventWebhook(req, res, next) {
-	console.log(req.body);
 	switch (req.body.object_type) {
 		case 'activity':
 			switch (req.body.aspect_type) {
