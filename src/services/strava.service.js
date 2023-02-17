@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const { logger } = require('../utils/logger.utils');
 const { getEnvVariable } = require('../utils/env.utils');
 const { createActivity } = require('./activities.service');
-const { createActivityImpact } = require('./activity-impact.service');
+const { getEmissionsAvoidedForActivity } = require('./activity-impact.service');
 
 const getStravaConnection = async (userId, isStravaId = false) => {
 	const result = isStravaId
@@ -319,26 +319,6 @@ const getActivityType = (activity) => {
 		default:
 			return false;
 	}
-}
-
-/**
- * Get the estimated number of grams of co2 avoided by the activity.
- * @param {object} activity
- * @returns int
- */
-const getEmissionsAvoidedForActivity = (activity) => {
-	if (!activity.commute) return 0;
-
-	/**
-	 * This is based on the average emissions of medium & small cars.
-	 * @see https://ourworldindata.org/travel-carbon-footprint
-	 */
-	const estimatedEmissionsPerKm = 165;
-
-	/**
-	 * @todo Instead of taking the activity distance, calculate distance of fossil fuel powered alternative
-	 */
-	return Math.round(activity.distance / 1000 * estimatedEmissionsPerKm);
 }
 
 /**

@@ -424,6 +424,24 @@ describe('Activities service', () => {
 			});
 		});
 
+		describe('when activity is set to commute = true without explicit activity_impact', () => {
+			it('should auto-generate activity impact and update user impact score', async () => {
+				const user = await generateNewUser();
+				const { id } = await generateUserActivity(user, {
+					distance: 5000,
+					commute: false,
+					activity_impact: null
+				});
+
+				await updateActivity(id, {
+					commute: true
+				});
+
+				const emissionsSaved = await getEmissionsAvoidedByUser(user.id);
+				expect(emissionsSaved).toEqual(825)
+			});
+		});
+
 		describe('when updating activity that does not exist', () => {
 			it('should throw an error', async () => {
 				const activityData = {

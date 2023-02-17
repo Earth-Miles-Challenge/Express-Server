@@ -141,7 +141,8 @@ describe('/users/:id/activities route', () => {
 				const initialData = {
 					"activity_type": "ride",
 					"description": "Ride to work",
-					"commute": false
+					"commute": false,
+					"distance": 5000
 				}
 
 				const activity = await generateUserActivity(user, initialData);
@@ -157,7 +158,12 @@ describe('/users/:id/activities route', () => {
 
 				const expectedData = {
 					...initialData,
-					...updateData
+					...updateData,
+					activity_impact: {
+						fossil_alternative_distance: 5000,
+						fossil_alternative_polyline: null,
+						fossil_alternative_co2: 825
+					}
 				}
 
 				expect(res.statusCode).toBe(200);

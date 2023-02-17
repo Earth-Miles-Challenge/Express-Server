@@ -65,7 +65,6 @@ const updateActivityImpact = async (activityId, newData) => {
 			];
 		}, [[], 1, []]);
 
-
 		logger.info(updateSql);
 		logger.info(updateValues);
 		const sql = `UPDATE activity_impact
@@ -105,6 +104,26 @@ const deleteActivityImpact = async (activityId) => {
 				WHERE activity_id = $1`;
 	const result = await db.query(sql, [activityId]);
 	return result.rowCount;
+}
+
+/**
+ * Get the estimated number of grams of co2 avoided by the activity.
+ * @param {object} activity
+ * @returns int
+ */
+const getEmissionsAvoidedForActivity = (activity) => {
+	if (!activity.commute) return 0;
+
+	/**
+	 * This is based on the average emissions of medium & small cars.
+	 * @see https://ourworldindata.org/travel-carbon-footprint
+	 */
+	const estimatedEmissionsPerKm = 165;
+
+	/**
+	 * @todo Instead of taking the activity distance, calculate distance of fossil fuel powered alternative
+	 */
+	return Math.round(activity.distance / 1000 * estimatedEmissionsPerKm);
 }
 
 /**
@@ -152,4 +171,5 @@ module.exports = {
 	updateActivityImpact,
 	upcreateActivityImpact,
 	deleteActivityImpact,
+	getEmissionsAvoidedForActivity
 }

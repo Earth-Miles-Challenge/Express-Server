@@ -11,7 +11,8 @@ const {
 const {
 	createActivityImpact,
 	upcreateActivityImpact,
-	getActivityImpact
+	getActivityImpact,
+	getEmissionsAvoidedForActivity
 } = require('./activity-impact.service');
 
 const getActivity = async (activityId, isPlatformId = false) => {
@@ -164,9 +165,17 @@ const updateActivity = async (activityId, newData, isPlatformId = false) => {
 					RETURNING *`;
 
 		const result = await db.query(sql, [...updateValues, existingData.id]);
-		const impact = newData.activity_impact !== undefined
-			? await upcreateActivityImpact(existingData.id, newData.activity_impact)
-			: await getActivityImpact(existingData.id);
+
+		const getImpact = async (activity) => {
+			if (newData.activity_impact !== undefined) return await upcreateActivityImpact(existingData.id, newData.activity_impact);
+			if (newData.commute) return await upcreateActivityImpact(existingData.id, {
+				fossil_alternative_distance: activity.distance,
+				fossil_alternative_co2: getEmissionsAvoidedForActivity(activity)
+			});
+			return await getActivityImpact(existingData.id);
+		}
+
+		const impact = await getImpact(result.rows[0]);
 
 		return {
 			...result.rows[0],
