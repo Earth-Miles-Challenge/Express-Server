@@ -316,6 +316,12 @@ const getActivityType = (activity) => {
 		case 'Walk':
 			return activity.type.toLowerCase();
 
+		case 'Hike':
+			return 'walk';
+
+		case 'EBikeRide':
+			return 'ebike-ride';
+
 		default:
 			return false;
 	}

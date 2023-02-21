@@ -1,6 +1,7 @@
 CREATE TYPE "activity_type" AS ENUM (
   'run',
   'ride',
+  'ebike-ride',
   'walk'
 );
 
@@ -68,3 +69,5 @@ CREATE INDEX ON "activity_impact" ("fossil_alternative_co2");
 -- ALTER TABLE "strava_connection" ADD FOREIGN KEY ("user_id") REFERENCES "user_account" ("id");
 
 -- ALTER TABLE "activities" ADD FOREIGN KEY ("user_id") REFERENCES "user_account" ("id");
+
+ALTER TYPE activity_type ADD VALUE IF NOT EXISTS 'ebike-ride';
