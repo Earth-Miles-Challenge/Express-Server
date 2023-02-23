@@ -1,5 +1,4 @@
 const db = require('./database.service');
-const { logger } = require('../utils/logger.utils');
 
 const getEmissionsAvoidedByUser = async (userId, args = {}) => {
 	const result = await db.query(`

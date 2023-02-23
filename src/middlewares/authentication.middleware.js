@@ -8,18 +8,22 @@ function authenticateToken(req, res, next) {
 	if (token == null) return res.sendStatus(401);
 
 	jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
-		if (err) logger.error(err);
-
-		if (err) return res.sendStatus(403);
+		if (err) {
+			logger.error(err);
+			return res.sendStatus(403);
+		}
 
 		req.authenticatedUser = user;
-
 		next();
 	});
 }
 
 function userHasAuthorization(req, res, next) {
-	if (!req.authenticatedUser) return res.sendStatus(403);
+	if (!req.authenticatedUser) {
+		logger.error('User is not authenticated.');
+		return res.sendStatus(403);
+	}
+
 	const userId = parseInt(req.params.userId);
 
 	if (!userId) return res.sendStatus(401);
