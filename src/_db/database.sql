@@ -17,8 +17,17 @@ CREATE TABLE IF NOT EXISTS "user_account" (
   "profile_photo" VARCHAR(256),
   "activity_platform" activity_platform,
   "activity_platform_id" VARCHAR(128),
+  "hash" VARCHAR,
+  "salt" VARCHAR,
+  "email_confirmed" BOOLEAN,
   "created_at" TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE (activity_platform, activity_platform_id)
+);
+
+CREATE TABLE IF NOT EXISTS "user_account_confirmation_token" (
+  "user_id" INT REFERENCES "user_account" (id) ON DELETE CASCADE,
+  "token" VARCHAR(128),
+  PRIMARY KEY ("user_id")
 );
 
 CREATE TABLE IF NOT EXISTS "strava_connection" (
@@ -71,3 +80,7 @@ CREATE INDEX ON "activity_impact" ("fossil_alternative_co2");
 -- ALTER TABLE "activities" ADD FOREIGN KEY ("user_id") REFERENCES "user_account" ("id");
 
 ALTER TYPE activity_type ADD VALUE IF NOT EXISTS 'ebike-ride';
+
+
+ALTER TABLE "user_account" ADD COLUMN "hash" VARCHAR;
+ALTER TABLE "user_account" ADD COLUMN "salt" VARCHAR;

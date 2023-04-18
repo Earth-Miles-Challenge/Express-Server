@@ -23,7 +23,17 @@ const getUser = async (userId) => {
 		WHERE id = $1`,
 		[userId]
 	);
-	return result.rows[0];
+	return result?.rows[0];
+}
+
+const getUserByEmail = async (email) => {
+	const result = await db.query(`
+		SELECT *
+		FROM user_account
+		WHERE email = $1`,
+		[email]
+	);
+	return result?.rows[0];
 }
 
 const getUserByPlatformId = async (platform, platform_id) => {
@@ -147,6 +157,7 @@ const validate = (data) => {
 module.exports = {
 	getUsers,
 	getUser,
+	getUserByEmail,
 	getUserByPlatformId,
 	createUser,
 	updateUser,

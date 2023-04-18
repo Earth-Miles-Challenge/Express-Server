@@ -101,11 +101,55 @@ async function authenticateStrava(req, res, next) {
 	}
 }
 
-async function refreshToken(req, res, next) {
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ */
+async function login(req, res, next ) {
+	res.send('hello');
+	// const token = generateAccessToken({id: req.user.id}, '2 days');
+	// jwt.sign({ user: req.user }, 'StRoNGs3crE7', (err, token) => {
+    //     if (err) return res.json(err);
 
+    //     // Send Set-Cookie header
+    //     res.cookie('jwt', token, {
+    //         httpOnly: true,
+    //         sameSite: true,
+    //         signed: true,
+    //         secure: true
+    //     });
+
+    //     // Return json web token
+    //     return res.json({
+    //         jwt: token
+    //     });
+    // });
+	// // Generate the token
+	// const token = generateAccessToken({id: user.id}, '2 days');
+	// logger.info(token);
+	// res.cookie('token', token, {
+	// 	secure: getEnvironment() === 'PRODUCTION',
+	// 	maxAge: null,
+	// 	httpOnly: false
+	// });
+
+	// res.json({
+	// 	success: true,
+	// 	data: {}
+	// });
+}
+
+/**
+ * Register a new user account.
+ */
+async function register(req, res, next) {
+	res.send('register');
 }
 
 module.exports = {
 	authenticateStrava,
-	refreshToken
+	login,
+	register
 };

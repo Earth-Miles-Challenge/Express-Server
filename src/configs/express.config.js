@@ -7,6 +7,8 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const morganConfig = require('./morgan.config');
 
+const passport = require('./passport.config');
+
 const logger = require('../utils/logger.utils');
 
 const usersRouter = require('../routes/users.route');
@@ -20,6 +22,9 @@ app.use(logger.express);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// Passport
+app.use(passport.initialize());
 
 // Routers
 app.use('/api/users', usersRouter);

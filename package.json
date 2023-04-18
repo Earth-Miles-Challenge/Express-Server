@@ -20,6 +20,10 @@
     "log4js": "^6.7.0",
     "morgan": "~1.10.0",
     "node-fetch": "^2.6.7",
+    "passport": "^0.6.0",
+    "passport-jwt": "^4.0.1",
+    "passport-jwt-cookiecombo": "^1.0.5",
+    "passport-local": "^1.0.0",
     "pg": "^8.8.0",
     "pg-promise": "^10.12.1"
   },
