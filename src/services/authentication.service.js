@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 function generateAccessToken(payload, expiresIn = '1800s') {
 	return jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn });

@@ -52,16 +52,18 @@ const createUser = async (data) => {
 		first_name,
 		last_name,
 		email,
+		hash,
+		salt,
 		profile_photo = '',
 		activity_platform,
 		activity_platform_id
 	} = data;
 
 	if (validate(data)) {
-		const sql = `INSERT INTO user_account(first_name, last_name, email, profile_photo, activity_platform, activity_platform_id)
-				VALUES($1, $2, $3, $4, $5, $6)
+		const sql = `INSERT INTO user_account(first_name, last_name, email, profile_photo, activity_platform, activity_platform_id, hash, salt)
+				VALUES($1, $2, $3, $4, $5, $6, $7, $8)
 				RETURNING *`;
-		const values = [first_name, last_name, email, profile_photo, activity_platform, activity_platform_id];
+		const values = [first_name, last_name, email, profile_photo, activity_platform, activity_platform_id, hash, salt];
 		const result = await db.query(sql, values);
 		return result.rows[0];
 	}

@@ -32,7 +32,16 @@ function userHasAuthorization(req, res, next) {
 	next();
 }
 
+function validateStravaAuthenticationRequest(req, res, next) {
+	if (req?.query?.code && req?.query?.scope) return next();
+	
+	const err = new Error('Missing parameters for Strava authentication.');
+	err.status = 400;
+	return next(err);
+}
+
 module.exports = {
 	authenticateToken,
-	userHasAuthorization
+	userHasAuthorization,
+	validateStravaAuthenticationRequest
 }
