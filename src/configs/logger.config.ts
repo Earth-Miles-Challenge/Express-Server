@@ -3,7 +3,7 @@ const log_path = './logs';
 module.exports = {
 	appenders: {
 		console: {
-			type: ['test', 'development'].includes(process.env.NODE_ENV) ? 'stdout' : 'console'
+			type: ['test', 'development'].includes(process.env.NODE_ENV as string) ? 'stdout' : 'console'
 		},
 		access: {
 			type: 'dateFile',

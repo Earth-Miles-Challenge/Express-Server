@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import usersController from '../controllers/users.controller';
+import activitiesController from '../controllers/activities.controller';
+import impactController from '../controllers/impact.controller';
+import { authenticateToken, userHasAuthorization } from '../middlewares/authentication.middleware';
+
 const router = express.Router();
-const usersController = require('../controllers/users.controller');
-const activitiesController = require('../controllers/activities.controller');
-const impactController = require('../controllers/impact.controller');
-const { authenticateToken, userHasAuthorization } = require('../middlewares/authentication.middleware');
 
 router.all('/:userId*', authenticateToken, userHasAuthorization, usersController.userExists);
 
@@ -22,4 +23,4 @@ router.put('/:userId', usersController.update);
 router.get('/:userId/onboard', usersController.onboard);
 router.delete('/:userId', usersController.remove);
 
-module.exports = router;
+export default router;

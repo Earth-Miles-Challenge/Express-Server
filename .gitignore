@@ -3,6 +3,7 @@
 .env*
 .DS_Store
 client
+dist
 logs
 node_modules
 

@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import webhooksController from '../controllers/webhooks.controller';
+
 const router = express.Router();
-const webhooksController = require('../controllers/webhooks.controller');
 
 // Strava
 router.get('/strava', webhooksController.stravaWebhookVerificationWebhook);
 router.post('/strava', webhooksController.stravaEventWebhook);
 
-module.exports = router;
+export default router;

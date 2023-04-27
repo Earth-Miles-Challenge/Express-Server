@@ -1,18 +1,19 @@
-const express = require('express');
+import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+
 const app = express();
 
-const createError = require('http-errors');
-const cookieParser = require('cookie-parser');
+import createError from 'http-errors';
+import cookieParser from 'cookie-parser';
 
-const morgan = require('morgan');
-const morganConfig = require('./morgan.config');
+import morgan from 'morgan';
+import morganConfig from './morgan.config';
 
-const logger = require('../utils/logger.utils');
+import logger from '../utils/logger.utils';
 
-const usersRouter = require('../routes/users.route');
-const authRouter = require('../routes/auth.route');
-const globalImpactRouter = require('../routes/global-impact.route');
-const webhooksRouter = require('../routes/webhooks.route');
+import usersRouter from '../routes/users.route';
+import authRouter from '../routes/auth.route';
+import globalImpactRouter from '../routes/global-impact.route';
+import webhooksRouter from '../routes/webhooks.route';
 
 // Middleware
 app.use(morgan(morganConfig.format, morganConfig.options));
@@ -29,12 +30,12 @@ app.use('/api/impact', globalImpactRouter);
 app.use('/webhooks', webhooksRouter);
 
 // 404 handler
-app.use(function(req, res, next) {
+app.use(function(req: Request, res: Response, next: NextFunction) {
 	next(createError(404));
 });
 
 // Error handler
-app.use(function(err, req, res, next) {
+app.use(function(err: { message: string, status?: number}, req: Request, res: Response, next: NextFunction) {
 	res.locals.message = err.message;
 
 	if (req.app.get('env') === 'development') {
