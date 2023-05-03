@@ -1,21 +1,23 @@
-const db = require('./database.service');
+import { ActivityId, ActivityData, ActivityDataJoined, ActivityImpact } from '../types/activities.types';
+import { UserId } from '../types/users.types';
+import db from './database.service';
 
-const {
+import {
 	logger
-} = require('../utils/logger.utils');
+} from '../utils/logger.utils';
 
-const {
+import {
 	getFilteredObject
-} = require('../utils/object.utils');
+} from '../utils/object.utils';
 
-const {
+import {
 	createActivityImpact,
 	upcreateActivityImpact,
 	getActivityImpact,
 	getEmissionsAvoidedForActivity
-} = require('./activity-impact.service');
+} from './activity-impact.service';
 
-const getActivity = async (activityId, isPlatformId = false) => {
+export const getActivity = async (activityId: ActivityId, isPlatformId = false): Promise<ActivityData|null> => {
 	let result;
 
 	if (isPlatformId) {
@@ -39,12 +41,12 @@ const getActivity = async (activityId, isPlatformId = false) => {
 	return result.rows.length ? getActivityResponseObject(result.rows[0]) : null;
 }
 
-const getMostRecentActivity = async(userId) => {
+export const getMostRecentActivity = async(userId: UserId) => {
 	const activities = await getActivities(userId, {number: 1});
 	return activities.length ? activities[0] : null;
 }
 
-const getActivities = async (userId, searchParams = {}) => {
+export const getActivities = async (userId: UserId, searchParams: { number?: number, page?: number} = {}) => {
 	const {
 		number = 30,
 		page = 1
@@ -82,7 +84,7 @@ const getActivities = async (userId, searchParams = {}) => {
 	return result.rows.map(getActivityResponseObject);
 }
 
-const createActivity = async (data) => {
+export const createActivity = async (data: ActivityData) => {
 	if (validate(data)) {
 		const sql = `INSERT INTO activity(
 			user_id,
@@ -132,7 +134,7 @@ const createActivity = async (data) => {
 	}
 }
 
-const updateActivity = async (activityId, newData, isPlatformId = false) => {
+export const updateActivity = async (activityId: ActivityId, newData: ActivityData, isPlatformId = false) => {
 	const existingData = await getActivity(activityId, isPlatformId);
 
 	if (!existingData) {
@@ -166,7 +168,7 @@ const updateActivity = async (activityId, newData, isPlatformId = false) => {
 
 		const result = await db.query(sql, [...updateValues, existingData.id]);
 
-		const getImpact = async (activity) => {
+		const getImpact = async (activity: ActivityData) => {
 			if (newData.activity_impact !== undefined) return await upcreateActivityImpact(existingData.id, newData.activity_impact);
 			if (newData.commute) return await upcreateActivityImpact(existingData.id, {
 				fossil_alternative_distance: activity.distance,
@@ -189,7 +191,7 @@ const updateActivity = async (activityId, newData, isPlatformId = false) => {
 /**
  * Delete an activity.
  */
-const deleteActivity = async (activityId, isPlatformId = false) => {
+export const deleteActivity = async (activityId: ActivityId, isPlatformId = false) => {
 	const activity = await getActivity(activityId, isPlatformId);
 
 	if (!activity) {
@@ -209,7 +211,7 @@ const deleteActivity = async (activityId, isPlatformId = false) => {
  * @param {object} data
  * @returns Error|true
  */
-const validate = (data) => {
+const validate = (data: ActivityData) => {
 	const requiredFields = [
 		'user_id',
 		'activity_platform',
@@ -266,10 +268,10 @@ const getColumnNames = () => [
 	'end_latlng',
 	'map_polyline'
 ];
-const getSupportedActivityTypes = () => ['run', 'ride', 'walk'];
-const getSupportedPlatforms = () => ['strava']
+export const getSupportedActivityTypes = () => ['run', 'ride', 'walk'];
+export const getSupportedPlatforms = () => ['strava']
 
-const getActivityResponseObject = (activityData) => {
+export const getActivityResponseObject = (activityData: ActivityDataJoined): ActivityData => {
 	const impactFields = [
 		'fossil_alternative_distance',
 		'fossil_alternative_polyline',
@@ -285,16 +287,4 @@ const getActivityResponseObject = (activityData) => {
 			})
 			: null
 	}
-}
-
-module.exports = {
-	getActivity,
-	getMostRecentActivity,
-	getActivities,
-	createActivity,
-	updateActivity,
-	deleteActivity,
-	getSupportedActivityTypes,
-	getSupportedPlatforms,
-	getActivityResponseObject
 }

@@ -1,17 +1,19 @@
-const { logger } = require('../utils/logger.utils');
-const { getUserByPlatformId, createUser, updateUser } = require('../services/users.service');
-const {
+import { Request, Response, NextFunction } from 'express';
+import { logger } from '../utils/logger.utils';
+import { getUserByPlatformId, createUser, updateUser } from '../services/users.service';
+import {
 	getClientToken,
 	getStravaConnection,
 	updateStravaConnection,
 	createStravaConnection,
 	parseScope,
 	getStravaRefreshToken
-} = require('../services/strava.service');
-const { generateAccessToken } = require('../services/authentication.service');
-const { onboardUser } = require('../services/onboarding.service');
+} from '../services/strava.service';
+import { generateAccessToken } from '../services/authentication.service';
+import { onboardUser } from '../services/onboarding.service';
 
-const { getEnvironment } = require('../utils/env.utils');
+import { getEnvironment } from '../utils/env.utils';
+import { ErrorType } from '../types/error.types';
 
 /**
  * Strava authentication.
@@ -20,11 +22,12 @@ const { getEnvironment } = require('../utils/env.utils');
  * obtain a token from Strava. If successful, the Strava response
  * is stored in the session and the user is redirected.
  */
-async function authenticateStrava(req, res, next) {
-	if (!req.query || !req.query.code || !req.query.scope) {
-		const err = new Error('Missing parameters for Strava authentication.');
-		err.status = 400;
-		return next(err);
+async function authenticateStrava(req: Request, res: Response, next: NextFunction) {
+	if ( !req.query?.code || !req.query?.scope) {
+		return next({
+			error: new Error('Missing parameters for Strava authentication.'),
+			status: 400
+		});
 	}
 
 	const scope = parseScope(req.query.scope);
@@ -82,7 +85,6 @@ async function authenticateStrava(req, res, next) {
 			logger.info(token);
 			res.cookie('token', token, {
 				secure: getEnvironment() === 'PRODUCTION',
-				maxAge: null,
 				httpOnly: false
 			});
 
@@ -95,13 +97,14 @@ async function authenticateStrava(req, res, next) {
 			next(err);
 		}
 	} catch (stravaError) {
-		const err = new Error(`Error while obtaining Strava client token: ${stravaError.message} [${stravaError.status}]`);
-		err.status = stravaError.status;
-		next(err);
+		next({
+			error: new Error(`Error while obtaining Strava client token: ${stravaError.message} [${stravaError.status}]`),
+			status: stravaError.status
+		});
 	}
 }
 
-async function refreshToken(req, res, next) {
+async function refreshToken(req: Request, res: Response, next: NextFunction) {
 
 }
 

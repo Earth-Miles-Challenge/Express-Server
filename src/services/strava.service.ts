@@ -1,12 +1,13 @@
-const db = require('./database.service');
-const axios = require('axios');
-const fetch = require('node-fetch');
-const { logger } = require('../utils/logger.utils');
-const { getEnvVariable } = require('../utils/env.utils');
-const { createActivity } = require('./activities.service');
-const { getEmissionsAvoidedForActivity } = require('./activity-impact.service');
+import { StravaConnection } from '../types/stravaConnection.types';
+import { ActivityData } from '../types/activities.types';
+import db from './database.service';
+import axios from 'axios';
+import { logger } from '../utils/logger.utils';
+import { getEnvVariable } from '../utils/env.utils';
+import { createActivity } from './activities.service';
+import { getEmissionsAvoidedForActivity } from './activity-impact.service';
 
-const getStravaConnection = async (userId, isStravaId = false) => {
+export const getStravaConnection = async (userId: number, isStravaId = false) => {
 	const result = isStravaId
 		? await db.query(`SELECT * FROM strava_connection WHERE strava_id = $1`, [userId])
 		: await db.query(`SELECT * FROM strava_connection WHERE user_id = $1`, [userId]);
@@ -14,7 +15,7 @@ const getStravaConnection = async (userId, isStravaId = false) => {
 	return result.rows.length ? result.rows[0] : null;
 }
 
-const createStravaConnection = async (data) => {
+export const createStravaConnection = async (data: StravaConnection) => {
 	const {
 		user_id,
 		strava_id,
@@ -28,6 +29,7 @@ const createStravaConnection = async (data) => {
 	} = data;
 
 	const client = await db.pool.connect();
+
 	try {
 		await client.query('BEGIN');
 		const stravaConn = await client.query(
@@ -76,7 +78,7 @@ const createStravaConnection = async (data) => {
 	}
 }
 
-const updateStravaConnection = async (userId, newData, isStravaId = false) => {
+export const updateStravaConnection = async (userId: number, newData: StravaConnection, isStravaId = false) => {
 	const existingData = await getStravaConnection(userId, isStravaId);
 
 	if (!existingData) {
@@ -86,7 +88,13 @@ const updateStravaConnection = async (userId, newData, isStravaId = false) => {
 	}
 
 	const validColumns = getStravaConnectionColumnNames();
-	const [updateSql, n, updateValues, updateRefreshToken] = Object.keys(newData).reduce(([sql, n, values, updateRefreshToken], column) => {
+	const [updateSql: string[], n: number, updateValues<string|number>[], updateRefreshToken: boolean] = Object.keys(newData).reduce(
+		([
+			sql: string[],
+			n: number,
+			values: <string|number>[],
+			updateRefreshToken: boolean
+		], column) => {
 		if (!validColumns.includes(column)) {
 			const err = new Error(`Unknown column ${column} passed.`);
 			err.name = 'invalidColumn';
@@ -140,7 +148,7 @@ const updateStravaConnection = async (userId, newData, isStravaId = false) => {
 	}
 }
 
-const deleteStravaConnection = async (userId, isStravaId = false) => {
+export const deleteStravaConnection = async (userId: number, isStravaId = false) => {
 	const user = await getStravaConnection(userId, isStravaId);
 
 	if (!user) {
@@ -164,17 +172,17 @@ const deleteStravaConnection = async (userId, isStravaId = false) => {
 	}
 }
 
-const getStravaRefreshToken = async (userId) => {
+export const getStravaRefreshToken = async (userId: number) => {
 	const result = await db.query(`SELECT refresh_token FROM strava_refresh_token WHERE user_id = $1`, [userId]);
 	return result.rows.length ? result.rows[0] : null;
 }
 
-const updateStravaRefreshToken = async (token, userId) => {
+export const updateStravaRefreshToken = async (token, userId: number) => {
 	const result = await db.query(`UPDATE strava_refresh_token SET refresh_token = $1 WHERE user_id = $2 RETURNING refresh_token`, [token, userId]);
 	return result.rows.length ? result.rows[0] : null;
 }
 
-const getClientToken = async (code) => {
+export const getClientToken = async (code: string) => {
 	try {
 		/**
 		 * Headers required with accept-encoding permitting JSON response
@@ -197,9 +205,9 @@ const getClientToken = async (code) => {
 	}
 }
 
-const getUserAccessToken = async (userId, isStravaId = false) => {
+export const getUserAccessToken = async (userId: number, isStravaId = false) => {
 	const stravaConn = await getStravaConnection(userId, isStravaId);
-	if (stravaConn.expires_at > parseInt(Date.now() / 1000)) {
+	if (stravaConn.expires_at > (Date.now() / 1000)) {
 		return {
 			accessToken: stravaConn.access_token,
 			stravaConn: stravaConn
@@ -237,7 +245,7 @@ const getUserAccessToken = async (userId, isStravaId = false) => {
 	}
 }
 
-const getAthleteActivities = async (userId, after = 0, perPage = 30) => {
+export const getAthleteActivities = async (userId: number, after = 0, perPage = 30) => {
 	try {
 		const { accessToken } = await getUserAccessToken(userId);
 		const response = await axios.get(
@@ -254,7 +262,7 @@ const getAthleteActivities = async (userId, after = 0, perPage = 30) => {
 	}
 }
 
-const getActivityFromStrava = async (activityId, userId, isStravaId = false) => {
+export const getActivityFromStrava = async (activityId: string, userId: number, isStravaId = false) => {
 	try {
 		const { accessToken } = await getUserAccessToken(userId, isStravaId);
 		const response = await axios.get(
@@ -271,7 +279,7 @@ const getActivityFromStrava = async (activityId, userId, isStravaId = false) => 
 	}
 }
 
-const createActivityFromStravaActivity = async (userId, activityData) => {
+export const createActivityFromStravaActivity = async (userId: number, activityData: ActivityData) => {
 	const {
 		start_date,
 		distance,
@@ -309,7 +317,7 @@ const createActivityFromStravaActivity = async (userId, activityData) => {
 	return await createActivity(data);
 }
 
-const getActivityType = (activity) => {
+export const getActivityType = (activity: ActivityData) => {
 	switch (activity.type) {
 		case 'Ride':
 		case 'Run':
@@ -330,16 +338,19 @@ const getActivityType = (activity) => {
 /**
  * Parse the timezone passed by Strava to return only the region.
  * @param {string} timezone
- * @returns string
+ * @returns string|null
  */
-const parseTimezone = timezone => timezone.match(/.* (.*)/)[1];
+export const parseTimezone = (timezone: string) => {
+	const tz = timezone.match(/.* (.*)/)
+	return !!tz ? tz[1] : null;
+}
 
 /**
  * Parse the scope query string.
  * @param {string} scope
  * @returns object
  */
-const parseScope = scope => {
+export const parseScope = (scope: string) => {
 	const granted = scope.replace(/:/g,'_').split(',');
 	return [
 		'activity_write',
@@ -365,18 +376,21 @@ const getStravaConnectionColumnNames = () => [
 	'refresh_token'
 ];
 
-module.exports = {
-	getStravaConnection,
-	createStravaConnection,
-	updateStravaConnection,
-	deleteStravaConnection,
-	getStravaRefreshToken,
-	updateStravaRefreshToken,
-	getClientToken,
-	getUserAccessToken,
-	getAthleteActivities,
-	getActivityFromStrava,
-	createActivityFromStravaActivity,
-	parseTimezone,
-	parseScope
-}
+// export const stravaService = {
+// 	getStravaConnection,
+// 	createStravaConnection,
+// 	updateStravaConnection,
+// 	deleteStravaConnection,
+// 	getStravaRefreshToken,
+// 	updateStravaRefreshToken,
+// 	getClientToken,
+// 	getUserAccessToken,
+// 	getAthleteActivities,
+// 	getActivityFromStrava,
+// 	createActivityFromStravaActivity,
+// 	getActivityType,
+// 	parseTimezone,
+// 	parseScope
+// };
+
+// export default stravaService;

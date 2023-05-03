@@ -7,7 +7,7 @@ import {
 	updateActivity
 } from '../services/activities.service';
 
-import stravaService from '../services/strava.service';
+import * as stravaService from '../services/strava.service';
 
 // type ActivitiesRequest = Request & {
 // 	user:
@@ -28,7 +28,7 @@ const ActivitiesController = {
 		}
 	},
 
-	getOne: async function(req: Request, res: Response, next: NextFunction) {
+	getOne: async function(req: ActivityRequest, res: Response, next: NextFunction) {
 		res.json(req.activity);
 	},
 

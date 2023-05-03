@@ -1,7 +1,8 @@
-const db = require('./database.service');
-const { logger } = require('../utils/logger.utils');
+import { ActivityData, ActivityId, ActivityImpact } from '../types/activities.types';
+import db from './database.service';
+import { logger } from '../utils/logger.utils';
 
-const getActivityImpact = async (activityId) => {
+export const getActivityImpact = async (activityId: ActivityId) => {
 	const result = await db.query(`
 		SELECT
 			activity_id,
@@ -16,7 +17,7 @@ const getActivityImpact = async (activityId) => {
 	return result.rows.length ? result.rows[0] : null;
 }
 
-const createActivityImpact = async (data) => {
+export const createActivityImpact = async (data: ActivityImpact) => {
 	if (validate(data)) {
 		const sql = `INSERT INTO activity_impact(
 			activity_id,
@@ -39,7 +40,7 @@ const createActivityImpact = async (data) => {
 	}
 }
 
-const updateActivityImpact = async (activityId, newData) => {
+export const updateActivityImpact = async (activityId: ActivityId, newData: ActivityImpact) => {
 	logger.info('updateActivityImpact');
 	const existingData = await getActivityImpact(activityId);
 
@@ -77,7 +78,7 @@ const updateActivityImpact = async (activityId, newData) => {
 	}
 }
 
-const upcreateActivityImpact = async (activityId, newData) => {
+export const upcreateActivityImpact = async (activityId: ActivityId, newData: ActivityImpact) => {
 	const exists = await getActivityImpact(activityId);
 
 	// Delete the activity impact if the data has been set to null
@@ -91,7 +92,7 @@ const upcreateActivityImpact = async (activityId, newData) => {
 		});
 }
 
-const deleteActivityImpact = async (activityId) => {
+export const deleteActivityImpact = async (activityId: ActivityId) => {
 	const activityImpact = await getActivityImpact(activityId);
 
 	if (!activityImpact) {
@@ -111,7 +112,7 @@ const deleteActivityImpact = async (activityId) => {
  * @param {object} activity
  * @returns int
  */
-const getEmissionsAvoidedForActivity = (activity) => {
+export const getEmissionsAvoidedForActivity = (activity: ActivityData) => {
 	if (!activity.commute) return 0;
 
 	/**
@@ -131,7 +132,7 @@ const getEmissionsAvoidedForActivity = (activity) => {
  * @param {object} data
  * @returns Error|true
  */
- const validate = (data) => {
+ const validate = (data: ActivityData) => {
 	const requiredFields = [
 		'activity_id',
 		'fossil_alternative_distance',
@@ -164,12 +165,3 @@ const getColumnNames = () => [
 	'fossil_alternative_polyline',
 	'fossil_alternative_co2',
 ];
-
-module.exports = {
-	getActivityImpact,
-	createActivityImpact,
-	updateActivityImpact,
-	upcreateActivityImpact,
-	deleteActivityImpact,
-	getEmissionsAvoidedForActivity
-}

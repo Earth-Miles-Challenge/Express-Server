@@ -1,6 +1,6 @@
 const log_path = './logs';
 
-module.exports = {
+export const loggerConfig = {
 	appenders: {
 		console: {
 			type: ['test', 'development'].includes(process.env.NODE_ENV as string) ? 'stdout' : 'console'
@@ -24,3 +24,5 @@ module.exports = {
 		debug: { appenders: ['debug'], level: 'DEBUG' },
 	},
 }
+
+export default loggerConfig;
